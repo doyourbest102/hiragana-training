@@ -6,6 +6,7 @@ import { TestPage } from './pages/TestPage'
 import { TestResultPage } from './pages/TestResultPage'
 import { ProgressPage } from './pages/ProgressPage'
 import { WeakPage } from './pages/WeakPage'
+import { GuidePage } from './pages/GuidePage'
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
           <Route path="/test/result" element={<TestResultPage />} />
           <Route path="/progress" element={<ProgressPage />} />
           <Route path="/weak" element={<WeakPage />} />
+          <Route path="/guide" element={<GuidePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

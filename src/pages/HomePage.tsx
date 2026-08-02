@@ -47,6 +47,12 @@ export function HomePage() {
         >
           취약 글자 연습
         </Link>
+        <Link
+          to="/guide"
+          className="flex h-14 items-center justify-center rounded-2xl bg-white text-lg font-bold text-teal-800 shadow-sm ring-1 ring-teal-100 transition active:scale-[0.98]"
+        >
+          사용 방법
+        </Link>
       </nav>
 
       {/* 学習サマリー */}
