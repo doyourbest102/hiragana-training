@@ -93,15 +93,17 @@ export function TestPage() {
   }
 
   return (
-    <Layout title="テストモード" showBack>
+    <Layout title="테스트 모드" showBack>
       <ProgressBar
         current={index + 1}
         total={questions.length}
-        label={`問題 ${index + 1} / ${questions.length}`}
+        label={`문제 ${index + 1} / ${questions.length}`}
       />
 
       <div className="mt-6 text-center">
-        <p className="text-sm font-medium text-teal-700">音声を聞いて、正しい文字を選ぼう</p>
+        <p className="text-sm font-medium text-teal-700">
+          소리를 듣고 올바른 글자를 선택하세요
+        </p>
       </div>
 
       <div className="mt-4">
@@ -109,20 +111,20 @@ export function TestPage() {
           onClick={handleSpeak}
           isSpeaking={isSpeaking}
           prominent={needsManualPlay || !isSupported}
-          label={needsManualPlay ? '音声を聞く（タップ）' : 'もう一度聞く'}
+          label={needsManualPlay ? '소리 듣기(누르기)' : '다시 듣기'}
         />
       </div>
 
       {(error || needsManualPlay) && (
         <p className="mt-2 text-center text-sm text-amber-700" role="status">
-          {error ?? '自動再生できませんでした。上のボタンで音声を聞いてください。'}
+          {error ?? '자동 재생에 실패했습니다. 위 버튼을 눌러 소리를 들어 주세요.'}
         </p>
       )}
 
       <div
         className="mt-6 grid grid-cols-2 gap-3"
         role="group"
-        aria-label="選択肢"
+        aria-label="선택지"
       >
         {question.optionIds.map((id) => {
           const char = getCharacterById(id)!
@@ -145,7 +147,7 @@ export function TestPage() {
               type="button"
               disabled={answered}
               onClick={() => handleSelect(id)}
-              aria-label={`選択肢 ${char.hiragana}`}
+              aria-label={`선택지 ${char.hiragana}`}
               className={`flex h-24 items-center justify-center rounded-2xl text-5xl font-extrabold transition active:scale-[0.98] ${style}`}
             >
               {char.hiragana}
@@ -163,12 +165,12 @@ export function TestPage() {
           aria-live="polite"
         >
           {isCorrect ? (
-            <p className="text-xl font-extrabold">正解！</p>
+            <p className="text-xl font-extrabold">정답!</p>
           ) : (
             <>
-              <p className="text-xl font-extrabold">不正解</p>
+              <p className="text-xl font-extrabold">오답</p>
               <p className="mt-1 text-base">
-                正しい文字は「{correctChar.hiragana}」（{correctChar.romaji}）です
+                정답은 &quot;{correctChar.hiragana}&quot; ({correctChar.romaji})입니다
               </p>
             </>
           )}
@@ -181,7 +183,7 @@ export function TestPage() {
         disabled={!answered}
         className="mt-6 flex h-12 w-full items-center justify-center rounded-xl bg-teal-600 font-bold text-white disabled:bg-teal-300"
       >
-        {index >= questions.length - 1 ? '結果を見る' : '次の問題'}
+        {index >= questions.length - 1 ? '결과 보기' : '다음 문제'}
       </button>
     </Layout>
   )

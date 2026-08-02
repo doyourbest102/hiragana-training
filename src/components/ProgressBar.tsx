@@ -9,7 +9,7 @@ export function ProgressBar({ current, total, label }: ProgressBarProps) {
   const percent = total > 0 ? Math.round((current / total) * 100) : 0
 
   return (
-    <div className="w-full" role="status" aria-label={label ?? `進行状況 ${current}/${total}`}>
+    <div className="w-full" role="status" aria-label={label ?? `진행 상황 ${current}/${total}`}>
       {label && (
         <div className="mb-1 flex justify-between text-sm text-teal-800/80">
           <span>{label}</span>

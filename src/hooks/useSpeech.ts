@@ -45,7 +45,7 @@ export function useSpeech(): UseSpeechResult {
   const speak = useCallback(
     async ({ text }: SpeakOptions): Promise<boolean> => {
       if (!('speechSynthesis' in window)) {
-        setError('このブラウザでは音声再生に対応していません。')
+        setError('이 브라우저에서는 음성 재생을 지원하지 않습니다.')
         return false
       }
 
@@ -79,7 +79,7 @@ export function useSpeech(): UseSpeechResult {
           }
           utterance.onerror = () => {
             setIsSpeaking(false)
-            setError('音声の再生に失敗しました。「音声を聞く」ボタンを押してください。')
+            setError('음성 재생에 실패했습니다. "소리 듣기" 버튼을 눌러 주세요.')
             resolve(false)
           }
 
@@ -98,7 +98,7 @@ export function useSpeech(): UseSpeechResult {
             }
           }
         } catch {
-          setError('音声の再生に失敗しました。')
+          setError('음성 재생에 실패했습니다.')
           resolve(false)
         }
       })

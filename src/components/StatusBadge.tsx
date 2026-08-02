@@ -2,12 +2,32 @@ import type { LearningStatus } from '../types'
 
 const STATUS_STYLES: Record<
   LearningStatus,
-  { bg: string; label: string; icon: string }
+  { bg: string; label: string; shortLabel: string; icon: string }
 > = {
-  未学習: { bg: 'bg-slate-100 text-slate-600', label: '未学習', icon: '・' },
-  学習中: { bg: 'bg-amber-100 text-amber-800', label: '学習中', icon: '△' },
-  習得済み: { bg: 'bg-sky-100 text-sky-800', label: '習得済み', icon: '◎' },
-  苦手: { bg: 'bg-orange-100 text-orange-800', label: '苦手', icon: '！' },
+  未学習: {
+    bg: 'bg-slate-100 text-slate-600',
+    label: '미학습',
+    shortLabel: '전',
+    icon: '・',
+  },
+  学習中: {
+    bg: 'bg-amber-100 text-amber-800',
+    label: '학습 중',
+    shortLabel: '중',
+    icon: '△',
+  },
+  習得済み: {
+    bg: 'bg-sky-100 text-sky-800',
+    label: '학습 완료',
+    shortLabel: '완',
+    icon: '◎',
+  },
+  苦手: {
+    bg: 'bg-orange-100 text-orange-800',
+    label: '취약',
+    shortLabel: '약',
+    icon: '！',
+  },
 }
 
 interface StatusBadgeProps {

@@ -13,8 +13,8 @@ export function ConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = '実行する',
-  cancelLabel = 'キャンセル',
+  confirmLabel = '실행',
+  cancelLabel = '취소',
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {

@@ -10,7 +10,7 @@ interface SoundButtonProps {
 export function SoundButton({
   onClick,
   isSpeaking = false,
-  label = '音声を聞く',
+  label = '소리 듣기',
   prominent = false,
   disabled = false,
 }: SoundButtonProps) {
@@ -29,7 +29,7 @@ export function SoundButton({
       <span aria-hidden="true" className="text-xl">
         ♪
       </span>
-      <span>{isSpeaking ? '再生中…' : label}</span>
+      <span>{isSpeaking ? '재생 중…' : label}</span>
     </button>
   )
 }

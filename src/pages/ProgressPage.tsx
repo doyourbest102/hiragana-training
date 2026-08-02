@@ -27,12 +27,12 @@ export function ProgressPage() {
   const weakChars = HIRAGANA_CHARACTERS.filter((c) => getStatus(c.id) === '苦手')
 
   return (
-    <Layout title="学習記録" showBack>
+    <Layout title="학습 기록" showBack>
       {/* 全体進捗 */}
       <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-teal-50">
-        <h2 className="text-sm font-bold text-teal-900">全体の学習進捗</h2>
+        <h2 className="text-sm font-bold text-teal-900">전체 학습 진행률</h2>
         <p className="mt-1 text-2xl font-extrabold text-teal-900">
-          {summary.learnedCount} / {summary.totalCharacters} 文字
+          {summary.learnedCount} / {summary.totalCharacters}글자
         </p>
         <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
           {(Object.keys(STATUS_STYLES) as LearningStatus[]).map((s) => (
@@ -43,17 +43,17 @@ export function ProgressPage() {
           ))}
         </div>
         <p className="mt-3 text-sm text-teal-800/80">
-          全体正答率:{' '}
+          전체 정답률:{' '}
           <strong>
             {summary.overallAccuracy === null ? '—' : `${summary.overallAccuracy}%`}
           </strong>
-          ／ 連続学習: <strong>{summary.streakDays}日</strong>
+          / 연속 학습: <strong>{summary.streakDays}일</strong>
         </p>
       </section>
 
       {weakChars.length > 0 && (
-        <section className="mt-4" aria-label="苦手な文字">
-          <h2 className="text-sm font-bold text-teal-900">苦手な文字</h2>
+        <section className="mt-4" aria-label="취약 글자">
+          <h2 className="text-sm font-bold text-teal-900">취약 글자</h2>
           <div className="mt-2 flex flex-wrap gap-2">
             {weakChars.map((c) => (
               <button
@@ -65,7 +65,7 @@ export function ProgressPage() {
                   })
                 }
                 className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 text-xl font-bold text-orange-900"
-                aria-label={`${c.hiragana}を練習する`}
+                aria-label={`${c.hiragana} 연습하기`}
               >
                 {c.hiragana}
               </button>
@@ -75,14 +75,16 @@ export function ProgressPage() {
       )}
 
       {/* 五十音表 */}
-      <section className="mt-6" aria-label="五十音表">
-        <h2 className="mb-2 text-sm font-bold text-teal-900">五十音表</h2>
-        <p className="mb-3 text-xs text-teal-700/70">文字をタップするとその文字だけ練習できます</p>
+      <section className="mt-6" aria-label="히라가나 표">
+        <h2 className="mb-2 text-sm font-bold text-teal-900">히라가나 표</h2>
+        <p className="mb-3 text-xs text-teal-700/70">
+          글자를 누르면 해당 글자만 연습할 수 있습니다
+        </p>
 
         <div className="space-y-3">
           {Object.entries(rows).map(([row, chars]) => (
             <div key={row}>
-              <p className="mb-1 text-xs font-medium text-teal-600">{row}行</p>
+              <p className="mb-1 text-xs font-medium text-teal-600">{row}행</p>
               <div className="grid grid-cols-5 gap-1.5">
                 {chars.map((c) => {
                   const progress = getProgress(c.id)
@@ -100,24 +102,18 @@ export function ProgressPage() {
                         })
                       }
                       className={`flex flex-col items-center rounded-xl p-2 ${style.bg} transition active:scale-95`}
-                      aria-label={`${c.hiragana}、${status}、学習${progress.studyCount}回`}
+                      aria-label={`${c.hiragana}, ${style.label}, 학습 ${progress.studyCount}회`}
                     >
                       <span className="text-2xl font-extrabold leading-none">
                         {c.hiragana}
                       </span>
                       <span className="mt-1 text-[9px] font-medium opacity-80">
-                        {status === '未学習'
-                          ? '未'
-                          : status === '学習中'
-                            ? '中'
-                            : status === '習得済み'
-                              ? '済'
-                              : '苦'}
+                        {style.shortLabel}
                       </span>
                       <span className="sr-only">
-                        学習{progress.studyCount}回、テスト{progress.testCount}回、
-                        正解{progress.correctCount}、不正解{progress.incorrectCount}、
-                        正答率{accuracy === null ? 'なし' : `${accuracy}%`}
+                        학습 {progress.studyCount}회, 테스트 {progress.testCount}회,
+                        정답 {progress.correctCount}, 오답 {progress.incorrectCount},
+                        정답률 {accuracy === null ? '없음' : `${accuracy}%`}
                       </span>
                     </button>
                   )
@@ -133,8 +129,8 @@ export function ProgressPage() {
       </section>
 
       {/* 詳細リスト（選択文字の数値） */}
-      <section className="mt-6" aria-label="文字ごとの詳細">
-        <h2 className="mb-2 text-sm font-bold text-teal-900">文字ごとの記録</h2>
+      <section className="mt-6" aria-label="글자별 상세">
+        <h2 className="mb-2 text-sm font-bold text-teal-900">글자별 기록</h2>
         <ul className="max-h-64 space-y-2 overflow-y-auto rounded-2xl bg-white p-3 ring-1 ring-teal-50">
           {HIRAGANA_CHARACTERS.map((c) => {
             const p = getProgress(c.id)
@@ -157,9 +153,9 @@ export function ProgressPage() {
                   <StatusBadge status={getStatus(c.id)} compact />
                 </button>
                 <div className="text-right text-xs text-teal-700/80">
-                  <div>学習{p.studyCount}／書{p.writeCount}</div>
+                  <div>학습 {p.studyCount} / 쓰기 {p.writeCount}</div>
                   <div>
-                    テスト{p.testCount}（正{p.correctCount}/誤{p.incorrectCount}）
+                    테스트 {p.testCount} (정답 {p.correctCount}/오답 {p.incorrectCount})
                     {acc !== null ? ` ${acc}%` : ''}
                   </div>
                 </div>
@@ -174,15 +170,15 @@ export function ProgressPage() {
         onClick={() => setConfirmOpen(true)}
         className="mt-8 flex h-12 w-full items-center justify-center rounded-xl bg-red-50 font-bold text-red-700 ring-1 ring-red-200"
       >
-        学習記録をリセットする
+        학습 기록 초기화
       </button>
 
       <ConfirmDialog
         open={confirmOpen}
-        title="学習記録のリセット"
-        message="すべての学習記録が削除されます。この操作は取り消せません。よろしいですか？"
-        confirmLabel="リセットする"
-        cancelLabel="キャンセル"
+        title="학습 기록 초기화"
+        message="모든 학습 기록이 삭제됩니다. 이 작업은 되돌릴 수 없습니다. 계속하시겠습니까?"
+        confirmLabel="초기화"
+        cancelLabel="취소"
         onConfirm={() => {
           resetAll()
           setConfirmOpen(false)

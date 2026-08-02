@@ -22,7 +22,7 @@ export function Layout({
           <Link
             to={backTo}
             className="inline-flex h-12 min-w-12 items-center justify-center rounded-xl bg-white/80 text-teal-800 shadow-sm ring-1 ring-teal-100"
-            aria-label="戻る"
+            aria-label="뒤로"
           >
             ←
           </Link>

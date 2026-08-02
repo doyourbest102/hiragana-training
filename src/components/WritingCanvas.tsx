@@ -207,7 +207,7 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
-          aria-label={`${guideChar} を書くキャンバス`}
+          aria-label={`${guideChar} 쓰기 캔버스`}
           role="img"
         />
       </div>

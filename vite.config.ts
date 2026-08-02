@@ -12,14 +12,14 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png'],
       manifest: {
-        name: 'ひらがなトレーニング',
-        short_name: 'ひらがな',
-        description: 'ひらがなを聞いて、書いて覚える学習アプリ',
+        name: '히라가나 트레이닝',
+        short_name: '히라가나',
+        description: '히라가나를 듣고 쓰며 익히는 학습 앱',
         theme_color: '#0d9488',
         background_color: '#ecfdf5',
         display: 'standalone',
         orientation: 'portrait',
-        lang: 'ja',
+        lang: 'ko',
         start_url: '/',
         icons: [
           {
@@ -42,6 +42,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        ignoreURLParametersMatching: [/^replay$/],
       },
     }),
   ],

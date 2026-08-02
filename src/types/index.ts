@@ -85,8 +85,8 @@ export interface TestResult {
 
 /** 勉強モードの開始オプション */
 export interface StudyOptions {
-  /** 特定の文字だけ練習する場合のID一覧。未指定なら全文字 */
+  /** 特定の文字だけ練習する場合のID一覧。未指定なら文字選択画面 */
   characterIds?: string[]
   /** 結果画面からの遷移理由など */
-  source?: 'all' | 'wrong' | 'single'
+  source?: 'all' | 'wrong' | 'single' | 'picker' | 'weak'
 }
