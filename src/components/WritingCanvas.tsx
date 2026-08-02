@@ -34,6 +34,8 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
   function WritingCanvas({ guideChar, onStrokeEnd }, ref) {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const drawingRef = useRef(false)
+    const activePointerIdRef = useRef<number | null>(null)
+    const strokeHasInkRef = useRef(false)
     const strokeCountRef = useRef(0)
     const hasInkRef = useRef(false)
     // 手書きレイヤーだけを保持するためのオフスクリーンキャンバス
@@ -53,7 +55,14 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       const ctx = canvas.getContext('2d')
       if (!ctx) return
 
-      const { width, height } = canvas
+      const width = canvas.clientWidth
+      const height = canvas.clientHeight
+      if (width === 0 || height === 0) return
+      const scaleX = canvas.width / width
+      const scaleY = canvas.height / height
+
+      ctx.save()
+      ctx.setTransform(scaleX, 0, 0, scaleY, 0, 0)
 
       // 背景
       ctx.clearRect(0, 0, width, height)
@@ -69,7 +78,8 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
 
       // 手書きレイヤーを重ねる
       const ink = getInkCanvas()
-      ctx.drawImage(ink, 0, 0)
+      ctx.drawImage(ink, 0, 0, ink.width, ink.height, 0, 0, width, height)
+      ctx.restore()
     }, [guideChar, getInkCanvas])
 
     /** 高DPI対応でキャンバスサイズを合わせる */
@@ -84,27 +94,65 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
 
       canvas.style.width = `${size}px`
       canvas.style.height = `${size}px`
-      canvas.width = Math.floor(size * dpr)
-      canvas.height = Math.floor(size * dpr)
+      const cssWidth = canvas.clientWidth
+      const cssHeight = canvas.clientHeight
+      const pixelWidth = Math.max(1, Math.round(cssWidth * dpr))
+      const pixelHeight = Math.max(1, Math.round(cssHeight * dpr))
 
       const ink = getInkCanvas()
-      ink.width = canvas.width
-      ink.height = canvas.height
+      if (
+        canvas.width === pixelWidth &&
+        canvas.height === pixelHeight &&
+        ink.width === pixelWidth &&
+        ink.height === pixelHeight
+      ) {
+        redraw()
+        return
+      }
 
-      const ctx = canvas.getContext('2d')
+      // 画面回転などで実サイズが変わっても、書いた線は拡縮して保持する
+      const previousInk = document.createElement('canvas')
+      previousInk.width = ink.width
+      previousInk.height = ink.height
+      if (ink.width > 0 && ink.height > 0) {
+        previousInk.getContext('2d')?.drawImage(ink, 0, 0)
+      }
+
+      canvas.width = pixelWidth
+      canvas.height = pixelHeight
+      ink.width = pixelWidth
+      ink.height = pixelHeight
+
       const inkCtx = ink.getContext('2d')
-      if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       if (inkCtx) {
-        inkCtx.setTransform(dpr, 0, 0, dpr, 0, 0)
+        const scaleX = pixelWidth / cssWidth
+        const scaleY = pixelHeight / cssHeight
+        inkCtx.setTransform(scaleX, 0, 0, scaleY, 0, 0)
         inkCtx.lineCap = 'round'
         inkCtx.lineJoin = 'round'
         inkCtx.strokeStyle = '#0f766e'
         inkCtx.lineWidth = 8
+        if (previousInk.width > 0 && previousInk.height > 0) {
+          inkCtx.save()
+          inkCtx.setTransform(1, 0, 0, 1, 0, 0)
+          inkCtx.drawImage(
+            previousInk,
+            0,
+            0,
+            previousInk.width,
+            previousInk.height,
+            0,
+            0,
+            pixelWidth,
+            pixelHeight,
+          )
+          inkCtx.restore()
+        }
       }
 
-      // リサイズ時は手書きをクリア
-      strokeCountRef.current = 0
-      hasInkRef.current = false
+      drawingRef.current = false
+      activePointerIdRef.current = null
+      strokeHasInkRef.current = false
       redraw()
     }, [getInkCanvas, redraw])
 
@@ -132,6 +180,9 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
 
     useImperativeHandle(ref, () => ({
       clear: () => {
+        drawingRef.current = false
+        activePointerIdRef.current = null
+        strokeHasInkRef.current = false
         const ink = getInkCanvas()
         const inkCtx = ink.getContext('2d')
         if (inkCtx) {
@@ -151,27 +202,45 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       const canvas = canvasRef.current!
       const rect = canvas.getBoundingClientRect()
       return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
+        x: e.clientX - rect.left - canvas.clientLeft,
+        y: e.clientY - rect.top - canvas.clientTop,
       }
     }
 
     const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+      if (
+        drawingRef.current ||
+        !e.isPrimary ||
+        (e.pointerType === 'mouse' && e.button !== 0)
+      ) {
+        return
+      }
       e.preventDefault()
       const canvas = canvasRef.current
       const ink = getInkCanvas()
       const inkCtx = ink.getContext('2d')
       if (!canvas || !inkCtx) return
 
-      canvas.setPointerCapture(e.pointerId)
+      try {
+        canvas.setPointerCapture(e.pointerId)
+      } catch {
+        // Pointer Capture非対応時もCanvas内の描画は続行する
+      }
       drawingRef.current = true
+      activePointerIdRef.current = e.pointerId
+      strokeHasInkRef.current = false
       const { x, y } = getPoint(e)
       inkCtx.beginPath()
       inkCtx.moveTo(x, y)
     }
 
     const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-      if (!drawingRef.current) return
+      if (
+        !drawingRef.current ||
+        activePointerIdRef.current !== e.pointerId
+      ) {
+        return
+      }
       e.preventDefault()
       const ink = getInkCanvas()
       const inkCtx = ink.getContext('2d')
@@ -183,16 +252,29 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       inkCtx.beginPath()
       inkCtx.moveTo(x, y)
       hasInkRef.current = true
+      strokeHasInkRef.current = true
       redraw()
     }
 
-    const handlePointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
-      if (!drawingRef.current) return
+    const finishPointer = (e: React.PointerEvent<HTMLCanvasElement>) => {
+      if (
+        !drawingRef.current ||
+        activePointerIdRef.current !== e.pointerId
+      ) {
+        return
+      }
       drawingRef.current = false
-      strokeCountRef.current += 1
-      onStrokeEnd?.()
+      activePointerIdRef.current = null
+      if (strokeHasInkRef.current) {
+        strokeCountRef.current += 1
+        onStrokeEnd?.()
+      }
+      strokeHasInkRef.current = false
       try {
-        canvasRef.current?.releasePointerCapture(e.pointerId)
+        const canvas = canvasRef.current
+        if (canvas?.hasPointerCapture(e.pointerId)) {
+          canvas.releasePointerCapture(e.pointerId)
+        }
       } catch {
         // ignore
       }
@@ -202,11 +284,12 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       <div className="mx-auto w-full max-w-[360px]">
         <canvas
           ref={canvasRef}
-          className="canvas-touch w-full rounded-2xl border-2 border-teal-200 bg-white shadow-sm"
+          className="canvas-touch block w-full rounded-2xl border-2 border-teal-200 bg-white shadow-sm"
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
+          onPointerUp={finishPointer}
+          onPointerCancel={finishPointer}
+          onLostPointerCapture={finishPointer}
           aria-label={`${guideChar} 쓰기 캔버스`}
           role="img"
         />
