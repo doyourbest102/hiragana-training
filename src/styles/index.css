@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+/* アプリ全体のデザイントークン */
+:root {
+  --color-bg: #ecfdf5;
+  --color-bg-soft: #f0fdfa;
+  --color-primary: #0d9488;
+  --color-primary-dark: #0f766e;
+  --color-primary-light: #5eead4;
+  --color-accent: #f59e0b;
+  --color-text: #134e4a;
+  --color-text-muted: #5f7a76;
+  --color-surface: #ffffff;
+  --color-correct: #059669;
+  --color-incorrect: #dc2626;
+  --color-weak: #ea580c;
+  --color-mastered: #0284c7;
+  --color-learning: #ca8a04;
+  --font-sans: "M PLUS Rounded 1c", "Hiragino Sans", "Yu Gothic", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background:
+    radial-gradient(ellipse 120% 80% at 10% -20%, #a7f3d0 0%, transparent 50%),
+    radial-gradient(ellipse 100% 60% at 100% 0%, #99f6e4 0%, transparent 45%),
+    linear-gradient(180deg, var(--color-bg) 0%, #f8fafc 100%);
+  color: var(--color-text);
+  /* モバイルでオーバースクロール時のチラつきを抑える */
+  overscroll-behavior-y: none;
+}
+
+/* フォーカス可視化（キーボード・アクセシビリティ） */
+:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* キャンバスでスクロールやピンチを防ぐ */
+.canvas-touch {
+  touch-action: none;
+  user-select: none;
+}
