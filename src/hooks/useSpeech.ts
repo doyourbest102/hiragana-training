@@ -26,7 +26,25 @@ const VOICE_WAIT_MS = 800
 const START_TIMEOUT_MS = 2500
 const PLAYBACK_TIMEOUT_MS = 10000
 const CANCEL_GAP_MS = 60
-const SLOW_SPEECH_RATE = 0.68
+const SLOW_SPEECH_RATE = 0.7
+
+/** 端末固有の音声名には依存せず、ローカルのja-JP音声を最優先する */
+function selectJapaneseVoice(
+  voices: SpeechSynthesisVoice[],
+): SpeechSynthesisVoice | undefined {
+  const japaneseVoices = voices.filter((voice) =>
+    voice.lang.toLowerCase().replace('_', '-').startsWith('ja'),
+  )
+  const isJaJp = (voice: SpeechSynthesisVoice) =>
+    voice.lang.toLowerCase().replace('_', '-') === 'ja-jp'
+
+  return (
+    japaneseVoices.find((voice) => isJaJp(voice) && voice.localService) ||
+    japaneseVoices.find(isJaJp) ||
+    japaneseVoices.find((voice) => voice.localService) ||
+    japaneseVoices[0]
+  )
+}
 
 /**
  * Web Speech API (SpeechSynthesis) を扱うカスタムフック。
@@ -157,9 +175,7 @@ export function useSpeech(): UseSpeechResult {
         // speak()より前に日本語音声を選択する。未読込ならlang指定へフォールバック
         const voices =
           voicesRef.current.length > 0 ? voicesRef.current : synth.getVoices()
-        const jaVoice =
-          voices.find((voice) => voice.lang === 'ja-JP') ||
-          voices.find((voice) => voice.lang.startsWith('ja'))
+        const jaVoice = selectJapaneseVoice(voices)
         if (jaVoice) utterance.voice = jaVoice
 
         return await new Promise<boolean>((resolve) => {

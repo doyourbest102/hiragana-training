@@ -6,7 +6,8 @@ import type { Character } from '../types'
  */
 export const HIRAGANA_CHARACTERS: Character[] = [
   // あ行
-  { id: 'a', hiragana: 'あ', romaji: 'a', row: 'あ', speechText: 'あ', category: 'seion' },
+  // Androidの短い発話で先頭が欠けにくいよう、読み上げ専用テキストに句点を付ける
+  { id: 'a', hiragana: 'あ', romaji: 'a', row: 'あ', speechText: 'あ。', category: 'seion' },
   { id: 'i', hiragana: 'い', romaji: 'i', row: 'あ', speechText: 'い', category: 'seion' },
   { id: 'u', hiragana: 'う', romaji: 'u', row: 'あ', speechText: 'う', category: 'seion' },
   { id: 'e', hiragana: 'え', romaji: 'e', row: 'あ', speechText: 'え', category: 'seion' },
