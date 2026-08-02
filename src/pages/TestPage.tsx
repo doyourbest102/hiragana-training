@@ -25,6 +25,7 @@ export function TestPage() {
   const [needsManualPlay, setNeedsManualPlay] = useState(false)
   const sessionStarted = useRef(false)
   const autoPlayedFor = useRef<number | null>(null)
+  const manualPlayRequest = useRef(0)
 
   const question = questions[index]
   const correctChar = getCharacterById(question.correctId)!
@@ -42,24 +43,35 @@ export function TestPage() {
   useEffect(() => {
     if (autoPlayedFor.current === index) return
     autoPlayedFor.current = index
+    manualPlayRequest.current += 1
     setNeedsManualPlay(false)
+    let cancelled = false
 
     const tryAutoPlay = async () => {
-      // 音声voicesのロード待ちを少し入れる
-      await new Promise((r) => setTimeout(r, 100))
       const ok = await speak({ text: correctChar.speechText, fromUserGesture: false })
-      if (!ok) {
+      if (!cancelled && !ok) {
         setNeedsManualPlay(true)
       }
     }
 
     void tryAutoPlay()
+    return () => {
+      cancelled = true
+    }
   }, [index, correctChar.speechText, speak])
 
   const handleSpeak = () => {
+    const requestId = manualPlayRequest.current + 1
+    manualPlayRequest.current = requestId
     clearError()
     setNeedsManualPlay(false)
-    void speak({ text: correctChar.speechText, fromUserGesture: true })
+    void speak({ text: correctChar.speechText, fromUserGesture: true }).then(
+      (ok) => {
+        if (manualPlayRequest.current === requestId && !ok) {
+          setNeedsManualPlay(true)
+        }
+      },
+    )
   }
 
   const handleSelect = (optionId: string) => {
