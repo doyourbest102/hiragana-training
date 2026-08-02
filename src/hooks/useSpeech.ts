@@ -26,6 +26,7 @@ const VOICE_WAIT_MS = 800
 const START_TIMEOUT_MS = 2500
 const PLAYBACK_TIMEOUT_MS = 10000
 const CANCEL_GAP_MS = 60
+const SLOW_SPEECH_RATE = 0.68
 
 /**
  * Web Speech API (SpeechSynthesis) を扱うカスタムフック。
@@ -150,7 +151,7 @@ export function useSpeech(): UseSpeechResult {
       try {
         const utterance = new SpeechSynthesisUtterance(text)
         utterance.lang = 'ja-JP'
-        utterance.rate = 0.75
+        utterance.rate = SLOW_SPEECH_RATE
         utterance.pitch = 1
 
         // speak()より前に日本語音声を選択する。未読込ならlang指定へフォールバック
