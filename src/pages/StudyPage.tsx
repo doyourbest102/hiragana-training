@@ -206,6 +206,7 @@ export function StudyPage() {
     <Layout
       title="학습 모드"
       showBack
+      compact
       backTo={
         options.source === 'single'
           ? '/progress'
@@ -214,71 +215,78 @@ export function StudyPage() {
             : '/'
       }
     >
-      <ProgressBar
-        current={index + 1}
-        total={characters.length}
-        label="진행 상황"
-      />
-
-      <div className="mt-4 flex flex-col items-center text-center">
-        <StrokeOrderGuide hiragana={current.hiragana} />
-        <p className="mt-2 text-xl font-medium tracking-wide text-teal-700">
-          {current.koreanReading}
-        </p>
-      </div>
-
-      <div className="mt-4">
-        <WritingCanvas
-          ref={canvasRef}
-          guideChar={current.hiragana}
-          onStrokeEnd={() => setHasInk(true)}
+      <div className="study-practice flex min-h-0 flex-1 flex-col">
+        <ProgressBar
+          current={index + 1}
+          total={characters.length}
+          label="진행 상황"
+          compact
         />
-      </div>
 
-      <p className="mt-3 text-center text-sm text-teal-800/80">
-        연습 횟수: <strong>{effectivePractice}</strong> / {MIN_PRACTICE}회 이상
-        {!canGoNext && (
-          <span className="mt-1 block text-amber-700">
-            {MIN_PRACTICE - effectivePractice}번 더 쓴 후 다음으로 갈 수 있습니다
-            (쓴 다음 &quot;다시 쓰기&quot;를 눌러 반복 연습)
-          </span>
+        <div className="mt-1.5 flex items-center justify-center gap-4">
+          <StrokeOrderGuide hiragana={current.hiragana} compact />
+          <div className="min-w-16 text-center">
+            <p className="text-4xl font-extrabold leading-none text-teal-900">
+              {current.hiragana}
+            </p>
+            <p className="mt-1 text-lg font-medium leading-none tracking-wide text-teal-700">
+              {current.koreanReading}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-1.5">
+          <WritingCanvas
+            ref={canvasRef}
+            guideChar={current.hiragana}
+            onStrokeEnd={() => setHasInk(true)}
+          />
+        </div>
+
+        <p className="mt-1 text-center text-xs leading-tight text-teal-800/80">
+          연습 횟수: <strong>{effectivePractice}</strong> / {MIN_PRACTICE}회 이상
+          {!canGoNext && (
+            <span className="mt-0.5 block text-amber-700">
+              다음으로 가려면 {MIN_PRACTICE - effectivePractice}번 더 써 주세요.
+            </span>
+          )}
+        </p>
+
+        <div className="mt-1.5 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={handleClear}
+            className="flex h-12 items-center justify-center rounded-xl bg-white font-bold text-teal-800 ring-1 ring-teal-200"
+          >
+            다시 쓰기
+          </button>
+          <button
+            type="button"
+            onClick={handleNext}
+            disabled={!canGoNext}
+            className="flex h-12 items-center justify-center rounded-xl bg-teal-600 font-bold text-white disabled:bg-teal-300"
+          >
+            {index >= characters.length - 1 ? '완료하기' : '다음 글자'}
+          </button>
+        </div>
+
+        {/* 低い画面ではヘッダーの戻る導線を使い、操作領域を優先する */}
+        {(options.source === 'single' || options.source === 'picker') && (
+          <button
+            type="button"
+            onClick={() =>
+              navigate(
+                options.source === 'single' ? '/progress' : '/study',
+              )
+            }
+            className="study-return-link mt-1 min-h-11 text-center text-sm text-teal-700 underline"
+          >
+            {options.source === 'single'
+              ? '학습 기록으로 돌아가기'
+              : '글자 선택으로 돌아가기'}
+          </button>
         )}
-      </p>
-
-      <div className="mt-4 flex flex-col gap-3">
-        <button
-          type="button"
-          onClick={handleClear}
-          className="flex h-12 items-center justify-center rounded-xl bg-white font-bold text-teal-800 ring-1 ring-teal-200"
-        >
-          다시 쓰기
-        </button>
-        <button
-          type="button"
-          onClick={handleNext}
-          disabled={!canGoNext}
-          className="flex h-12 items-center justify-center rounded-xl bg-teal-600 font-bold text-white disabled:bg-teal-300"
-        >
-          {index >= characters.length - 1 ? '완료하기' : '다음 글자'}
-        </button>
       </div>
-
-      {/* 一覧からの単一文字練習で使う戻る導線 */}
-      {(options.source === 'single' || options.source === 'picker') && (
-        <button
-          type="button"
-          onClick={() =>
-            navigate(
-              options.source === 'single' ? '/progress' : '/study',
-            )
-          }
-          className="mt-3 text-center text-sm text-teal-700 underline"
-        >
-          {options.source === 'single'
-            ? '학습 기록으로 돌아가기'
-            : '글자 선택으로 돌아가기'}
-        </button>
-      )}
     </Layout>
   )
 }

@@ -89,7 +89,7 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       const parent = canvas.parentElement
       if (!parent) return
 
-      const size = Math.min(parent.clientWidth, 360)
+      const size = Math.min(parent.clientWidth, parent.clientHeight, 360)
       const dpr = window.devicePixelRatio || 1
 
       canvas.style.width = `${size}px`
@@ -158,6 +158,13 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
 
     useEffect(() => {
       setupSize()
+      const parent = canvasRef.current?.parentElement
+      if (parent && 'ResizeObserver' in window) {
+        const observer = new ResizeObserver(() => setupSize())
+        observer.observe(parent)
+        return () => observer.disconnect()
+      }
+
       const onResize = () => setupSize()
       window.addEventListener('resize', onResize)
       return () => window.removeEventListener('resize', onResize)
@@ -281,7 +288,7 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
     }
 
     return (
-      <div className="mx-auto w-full max-w-[360px]">
+      <div className="writing-canvas-frame mx-auto aspect-square w-full max-w-[360px]">
         <canvas
           ref={canvasRef}
           className="canvas-touch block w-full rounded-2xl border-2 border-teal-200 bg-white shadow-sm"

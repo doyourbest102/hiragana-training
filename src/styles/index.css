@@ -55,3 +55,42 @@ button:disabled {
   touch-action: none;
   user-select: none;
 }
+
+/* 書きモードは通常のスマートフォンで主要操作を一画面に収める */
+.study-layout {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.writing-canvas-frame {
+  --canvas-size: clamp(
+    10rem,
+    min(calc(100vw - 2rem), calc(100vh - 21rem)),
+    22.5rem
+  );
+  width: var(--canvas-size);
+  height: var(--canvas-size);
+  flex: 0 0 auto;
+}
+
+@supports (height: 100dvh) {
+  .writing-canvas-frame {
+    --canvas-size: clamp(
+      10rem,
+      min(calc(100vw - 2rem), calc(100dvh - 21rem)),
+      22.5rem
+    );
+  }
+}
+
+.study-return-link {
+  display: none;
+}
+
+@media (min-height: 45rem) {
+  .study-return-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
