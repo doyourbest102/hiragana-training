@@ -7,16 +7,15 @@ export function GuidePage() {
       <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-teal-50">
         <h2 className="text-lg font-extrabold text-teal-900">앱의 목적</h2>
         <p className="mt-2 text-sm leading-relaxed text-teal-800/80">
-          히라가나와 가타카나의 쓰기 순서를 확인하고 반복해서 쓰며 익히는 학습
-          앱입니다. 글자별 연습 기록을 확인하고 직접 학습 완료 상태를 관리할 수
-          있습니다.
+          히라가나의 쓰기 순서를 확인하고 반복해서 쓰며 익히는 학습 앱입니다.
+          글자별 연습 기록을 확인하고 직접 학습 완료 상태를 관리할 수 있습니다.
         </p>
       </section>
 
       <section className="mt-4">
         <h2 className="text-base font-extrabold text-teal-900">추천 학습 순서</h2>
         <ol className="mt-2 space-y-2 text-sm text-teal-800">
-          <GuideStep number={1} text="학습 모드에서 문자 종류를 선택합니다." />
+          <GuideStep number={1} text="학습 모드에서 연습할 글자를 선택합니다." />
           <GuideStep
             number={2}
             text="쓰기 순서를 확인하고 캔버스에 5번 씁니다."
@@ -34,9 +33,9 @@ export function GuidePage() {
 
       <section className="mt-5 space-y-3" aria-label="기능별 사용 방법">
         <GuideCard title="학습 모드">
-          히라가나 또는 가타카나를 선택하면 쓰기 순서 애니메이션이 재생됩니다.
-          캔버스에 한 번 쓸 때마다 &quot;다시 쓰기&quot;를 누르고, 5번 연습하면
-          다음 글자로 이동할 수 있습니다.
+          히라가나를 선택하면 쓰기 순서 애니메이션이 재생됩니다. 캔버스에 한
+          번 쓸 때마다 &quot;다시 쓰기&quot;를 누르고, 5번 연습하면 완료할 수
+          있습니다.
         </GuideCard>
         <GuideCard title="학습 기록">
           글자별 학습 횟수와 쓰기 횟수를 확인할 수 있습니다. 익혔다고 판단한

@@ -1,31 +1,21 @@
 import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { Layout } from '../components/Layout'
 import { StatusBadge, STATUS_STYLES } from '../components/StatusBadge'
-import {
-  getCharactersByScript,
-  groupByRow,
-  isCharacterScript,
-} from '../data/characters'
+import { groupByRow, HIRAGANA_CHARACTERS } from '../data/hiragana'
 import { useLearningStore } from '../store/LearningContext'
-import type { CharacterScript, LearningStatus } from '../types'
+import type { LearningStatus } from '../types'
 
 /** 学習記録画面 */
 export function ProgressPage() {
   const navigate = useNavigate()
-  const [searchParams, setSearchParams] = useSearchParams()
   const { summary, getProgress, getStatus, setMastered, resetAll } =
     useLearningStore()
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const scriptParam = searchParams.get('script') ?? undefined
-  const activeScript: CharacterScript = isCharacterScript(scriptParam)
-    ? scriptParam
-    : 'hiragana'
-  const characters = getCharactersByScript(activeScript)
-  const rows = groupByRow(activeScript)
+  const rows = groupByRow()
 
-  const statusCounts = characters.reduce(
+  const statusCounts = HIRAGANA_CHARACTERS.reduce(
     (acc, c) => {
       const s = getStatus(c.id)
       acc[s] += 1
@@ -33,48 +23,14 @@ export function ProgressPage() {
     },
     { 未学習: 0, 学習中: 0, 習得済み: 0 } as Record<LearningStatus, number>,
   )
-  const learnedCount = characters.filter((character) => {
-    const progress = getProgress(character.id)
-    return progress.writeCount > 0 || progress.isMastered
-  }).length
-  const masteredCount = characters.filter(
-    (character) => getProgress(character.id).isMastered,
-  ).length
-  const scriptLabel = activeScript === 'hiragana' ? '히라가나' : '가타카나'
 
   return (
     <Layout title="학습 기록" showBack>
-      <div
-        className="mb-4 grid grid-cols-2 gap-2 rounded-2xl bg-white p-1.5 ring-1 ring-teal-100"
-        aria-label="문자 종류"
-      >
-        {(['hiragana', 'katakana'] as const).map((script) => {
-          const selected = script === activeScript
-          return (
-            <button
-              key={script}
-              type="button"
-              aria-pressed={selected}
-              onClick={() => setSearchParams({ script })}
-              className={`min-h-12 rounded-xl px-2 font-bold transition ${
-                selected
-                  ? 'bg-teal-600 text-white shadow-sm'
-                  : 'bg-white text-teal-800'
-              }`}
-            >
-              {script === 'hiragana' ? '히라가나' : '가타카나'}
-            </button>
-          )
-        })}
-      </div>
-
       {/* 全体進捗 */}
       <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-teal-50">
-        <h2 className="text-sm font-bold text-teal-900">
-          {scriptLabel} 학습 진행률
-        </h2>
+        <h2 className="text-sm font-bold text-teal-900">전체 학습 진행률</h2>
         <p className="mt-1 text-2xl font-extrabold text-teal-900">
-          {learnedCount} / {characters.length}글자
+          {summary.learnedCount} / {summary.totalCharacters}글자
         </p>
         <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
           {(Object.keys(STATUS_STYLES) as LearningStatus[]).map((s) => (
@@ -85,14 +41,14 @@ export function ProgressPage() {
           ))}
         </div>
         <p className="mt-3 text-sm text-teal-800/80">
-          학습 완료: <strong>{masteredCount}글자</strong> / 연속 학습:{' '}
+          학습 완료: <strong>{summary.masteredCount}글자</strong> / 연속 학습:{' '}
           <strong>{summary.streakDays}일</strong>
         </p>
       </section>
 
       {/* 五十音表 */}
-      <section className="mt-6" aria-label={`${scriptLabel} 표`}>
-        <h2 className="mb-2 text-sm font-bold text-teal-900">{scriptLabel} 표</h2>
+      <section className="mt-6" aria-label="히라가나 표">
+        <h2 className="mb-2 text-sm font-bold text-teal-900">히라가나 표</h2>
         <p className="mb-3 text-xs text-teal-700/70">
           글자를 누르면 해당 글자만 연습할 수 있습니다
         </p>
@@ -112,13 +68,15 @@ export function ProgressPage() {
                       key={c.id}
                       type="button"
                       onClick={() =>
-                        navigate(`/study/${activeScript}/${c.id}`)
+                        navigate('/study', {
+                          state: { characterIds: [c.id], source: 'single' },
+                        })
                       }
                       className={`flex flex-col items-center rounded-xl p-2 ${style.bg} transition active:scale-95`}
-                      aria-label={`${c.character}, ${style.label}, 학습 ${progress.studyCount}회`}
+                      aria-label={`${c.hiragana}, ${style.label}, 학습 ${progress.studyCount}회`}
                     >
                       <span className="text-2xl font-extrabold leading-none">
-                        {c.character}
+                        {c.hiragana}
                       </span>
                       <span className="mt-1 text-[9px] font-medium opacity-80">
                         {style.shortLabel}
@@ -143,7 +101,7 @@ export function ProgressPage() {
       <section className="mt-6" aria-label="글자별 상세">
         <h2 className="mb-2 text-sm font-bold text-teal-900">글자별 기록</h2>
         <ul className="max-h-80 space-y-2 overflow-y-auto rounded-2xl bg-white p-3 ring-1 ring-teal-50">
-          {characters.map((c) => {
+          {HIRAGANA_CHARACTERS.map((c) => {
             const p = getProgress(c.id)
             return (
               <li
@@ -155,11 +113,13 @@ export function ProgressPage() {
                     type="button"
                     className="flex min-h-11 items-center gap-2 font-bold text-teal-900"
                     onClick={() =>
-                      navigate(`/study/${activeScript}/${c.id}`)
+                      navigate('/study', {
+                        state: { characterIds: [c.id], source: 'single' },
+                      })
                     }
-                    aria-label={`${c.character} 연습하기`}
+                    aria-label={`${c.hiragana} 연습하기`}
                   >
-                    <span className="text-xl">{c.character}</span>
+                    <span className="text-xl">{c.hiragana}</span>
                     <StatusBadge status={getStatus(c.id)} compact />
                   </button>
                   <div className="text-right text-xs text-teal-700/80">
@@ -169,7 +129,7 @@ export function ProgressPage() {
                 <button
                   type="button"
                   aria-pressed={p.isMastered}
-                  aria-label={`${c.character} ${
+                  aria-label={`${c.hiragana} ${
                     p.isMastered ? '학습 완료 취소' : '학습 완료로 설정'
                   }`}
                   onClick={() => setMastered(c.id, !p.isMastered)}

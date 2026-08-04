@@ -1,17 +1,17 @@
 import { useState } from 'react'
 
 interface StrokeOrderGuideProps {
-  character: string
+  hiragana: string
   compact?: boolean
 }
 
 /** 로컬 AnimCJK SVG로 히라가나 쓰기 순서를 보여 준다. */
 export function StrokeOrderGuide({
-  character,
+  hiragana,
   compact = false,
 }: StrokeOrderGuideProps) {
   const [replayKey, setReplayKey] = useState(0)
-  const codePoint = character.codePointAt(0)
+  const codePoint = hiragana.codePointAt(0)
 
   if (codePoint === undefined) return null
 
@@ -31,9 +31,9 @@ export function StrokeOrderGuide({
           쓰기 순서
         </p>
         <img
-          key={`${character}-${replayKey}`}
+          key={`${hiragana}-${replayKey}`}
           src={`/strokes/${codePoint}.svg?replay=${replayKey}`}
-          alt={`${character} 쓰기 순서 애니메이션`}
+          alt={`${hiragana} 쓰기 순서 애니메이션`}
           className={`bg-white ${
             compact
               ? 'h-16 w-16 rounded-xl'

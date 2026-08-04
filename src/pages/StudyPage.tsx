@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Layout } from '../components/Layout'
 import { ProgressBar } from '../components/ProgressBar'
 import { StrokeOrderGuide } from '../components/StrokeOrderGuide'
@@ -9,33 +9,43 @@ import {
 } from '../components/WritingCanvas'
 import {
   getCharacterById,
-  getCharactersByScript,
-  isCharacterScript,
-} from '../data/characters'
+  groupByRow,
+  HIRAGANA_CHARACTERS,
+} from '../data/hiragana'
 import { useLearningStore } from '../store/LearningContext'
+import type { StudyOptions } from '../types'
 
 const MIN_PRACTICE = 5
 
 /** 勉強モード：なぞり書き練習 */
 export function StudyPage() {
+  const location = useLocation()
   const navigate = useNavigate()
-  const { script: scriptParam, characterId } = useParams()
+  const options = (location.state as StudyOptions | null) ?? {}
   const { recordWriting, startSession } = useLearningStore()
   const canvasRef = useRef<WritingCanvasHandle>(null)
 
-  const script = isCharacterScript(scriptParam) ? scriptParam : null
-  const requestedCharacter = characterId
-    ? getCharacterById(characterId)
-    : undefined
-  const isSinglePractice = Boolean(characterId)
-  const characters = !script
-    ? []
-    : isSinglePractice
-      ? requestedCharacter?.script === script
-        ? [requestedCharacter]
-        : []
-      : getCharactersByScript(script)
-  const selectionKey = `${scriptParam ?? ''}:${characterId ?? ''}`
+  const characters = useMemo(() => {
+    if (!options.characterIds) return []
+    const selectedCharacters = options.characterIds
+      .map((id) => getCharacterById(id))
+      .filter((c): c is NonNullable<typeof c> => Boolean(c))
+
+    if (options.source !== 'picker' || selectedCharacters.length !== 1) {
+      return selectedCharacters
+    }
+
+    const startIndex = HIRAGANA_CHARACTERS.findIndex(
+      (character) => character.id === selectedCharacters[0].id,
+    )
+    return startIndex >= 0
+      ? HIRAGANA_CHARACTERS.slice(startIndex)
+      : selectedCharacters
+  }, [options.characterIds, options.source])
+  const rows = useMemo(() => groupByRow(), [])
+  const selectionKey = `${options.source ?? ''}:${
+    options.characterIds?.join('|') ?? ''
+  }`
 
   const [index, setIndex] = useState(0)
   const [practiceCount, setPracticeCount] = useState(0)
@@ -76,14 +86,73 @@ export function StudyPage() {
     isAdvancingRef.current = false
   }, [index])
 
-  if (!script) return <Navigate to="/study" replace />
+  if (!options.characterIds) {
+    return (
+      <Layout title="연습할 글자 선택" showBack>
+        <p className="mb-4 text-sm text-teal-800/80">
+          히라가나를 누르면 해당 글자부터 순서대로 연습할 수 있습니다.
+        </p>
+        <div className="space-y-3" aria-label="히라가나 표">
+          {Object.entries(rows).map(([row, chars]) => (
+            <section key={row} aria-labelledby={`study-row-${row}`}>
+              <h2
+                id={`study-row-${row}`}
+                className="mb-1 text-xs font-bold text-teal-700"
+              >
+                {row}행
+              </h2>
+              <div className="grid grid-cols-5 gap-1.5">
+                {chars.map((character) => (
+                  <button
+                    key={character.id}
+                    type="button"
+                    onClick={() =>
+                      navigate('/study', {
+                        state: {
+                          characterIds: [character.id],
+                          source: 'picker',
+                        } satisfies StudyOptions,
+                      })
+                    }
+                    className="flex h-14 items-center justify-center rounded-xl bg-white text-2xl font-extrabold text-teal-900 shadow-sm ring-1 ring-teal-100 transition active:scale-95"
+                    aria-label={`${character.hiragana}부터 연습하기`}
+                  >
+                    {character.hiragana}
+                  </button>
+                ))}
+                {Array.from({ length: 5 - chars.length }).map((_, i) => (
+                  <div
+                    key={`empty-${row}-${i}`}
+                    className="opacity-0"
+                    aria-hidden="true"
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </Layout>
+    )
+  }
+
   if (characters.length === 0) {
-    return <Navigate to={`/study/${script}`} replace />
+    return (
+      <Layout title="학습 모드" showBack>
+        <p className="text-center text-teal-800">연습할 글자가 없습니다.</p>
+        <Link
+          to="/"
+          className="mt-4 flex h-12 items-center justify-center rounded-xl bg-teal-600 font-bold text-white"
+        >
+          홈으로
+        </Link>
+      </Layout>
+    )
   }
 
   if (finished) {
-    const returnPath = '/study'
-    const returnLabel = '다른 문자 선택하기'
+    const returnPath = options.source === 'picker' ? '/study' : '/'
+    const returnLabel =
+      options.source === 'picker' ? '다른 글자 선택하기' : '홈으로'
 
     return (
       <Layout title="학습 완료" showBack backTo={returnPath}>
@@ -139,8 +208,8 @@ export function StudyPage() {
 
     recordWriting(current.id, Math.max(effectivePractice, MIN_PRACTICE))
 
-    if (isSinglePractice) {
-      navigate(`/progress?script=${script}`, { replace: true })
+    if (options.source === 'single') {
+      navigate('/progress', { replace: true })
     } else if (index >= characters.length - 1) {
       setFinished(true)
     } else {
@@ -151,6 +220,7 @@ export function StudyPage() {
     }
   }
 
+  const isSinglePractice = options.source === 'single'
   const isLastCharacter = index >= characters.length - 1
   const actionLabel = isSinglePractice
     ? '연습 완료하기'
@@ -160,10 +230,16 @@ export function StudyPage() {
 
   return (
     <Layout
-      title={`${script === 'hiragana' ? '히라가나' : '가타카나'} 학습`}
+      title="학습 모드"
       showBack
       compact
-      backTo={isSinglePractice ? `/progress?script=${script}` : '/study'}
+      backTo={
+        options.source === 'single'
+          ? '/progress'
+          : options.source === 'picker'
+            ? '/study'
+            : '/'
+      }
     >
       <div className="study-practice flex min-h-0 flex-1 flex-col">
         <ProgressBar
@@ -174,10 +250,10 @@ export function StudyPage() {
         />
 
         <div className="mt-1.5 flex items-center justify-center gap-4">
-          <StrokeOrderGuide character={current.character} compact />
+          <StrokeOrderGuide hiragana={current.hiragana} compact />
           <div className="min-w-16 text-center">
             <p className="text-4xl font-extrabold leading-none text-teal-900">
-              {current.character}
+              {current.hiragana}
             </p>
             <p className="mt-1 text-lg font-medium leading-none tracking-wide text-teal-700">
               {current.koreanReading}
@@ -188,7 +264,7 @@ export function StudyPage() {
         <div className="mt-1.5">
           <WritingCanvas
             ref={canvasRef}
-            guideChar={current.character}
+            guideChar={current.hiragana}
             onStrokeEnd={() => setHasInk(true)}
           />
         </div>
@@ -221,17 +297,21 @@ export function StudyPage() {
         </div>
 
         {/* 低い画面ではヘッダーの戻る導線を使い、操作領域を優先する */}
-        <button
-          type="button"
-          onClick={() =>
-            navigate(
-              isSinglePractice ? `/progress?script=${script}` : '/study',
-            )
-          }
-          className="study-return-link mt-1 min-h-11 text-center text-sm text-teal-700 underline"
-        >
-          {isSinglePractice ? '학습 기록으로 돌아가기' : '문자 선택으로 돌아가기'}
-        </button>
+        {(options.source === 'single' || options.source === 'picker') && (
+          <button
+            type="button"
+            onClick={() =>
+              navigate(
+                options.source === 'single' ? '/progress' : '/study',
+              )
+            }
+            className="study-return-link mt-1 min-h-11 text-center text-sm text-teal-700 underline"
+          >
+            {options.source === 'single'
+              ? '학습 기록으로 돌아가기'
+              : '글자 선택으로 돌아가기'}
+          </button>
+        )}
       </div>
     </Layout>
   )

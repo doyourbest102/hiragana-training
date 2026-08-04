@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useLearningStore } from '../store/LearningContext'
-import { ALL_CHARACTERS } from '../data/characters'
+import { HIRAGANA_CHARACTERS } from '../data/hiragana'
 
 /** ホーム画面 */
 export function HomePage() {
@@ -12,12 +12,12 @@ export function HomePage() {
       <header className="mb-8 text-center">
         <p className="text-sm font-medium tracking-wide text-teal-600">쓰면서 익히기</p>
         <h1 className="mt-2 text-4xl font-extrabold leading-tight text-teal-900 sm:text-5xl">
-          히라가나·가타카나
+          히라가나
           <br />
           트레이닝
         </h1>
         <p className="mt-3 text-base text-teal-800/75">
-          기본음 {ALL_CHARACTERS.length}글자를 즐겁게 마스터
+          기본음 {HIRAGANA_CHARACTERS.length}글자를 즐겁게 마스터
         </p>
       </header>
 

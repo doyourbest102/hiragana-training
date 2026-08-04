@@ -1,12 +1,12 @@
 import type { CharacterProgress, LearningStatus, LearningStoreData } from '../types'
-import { ALL_CHARACTERS } from '../data/characters'
+import { HIRAGANA_CHARACTERS } from '../data/hiragana'
 import { daysBetween, getTodayString } from '../utils/date'
 
 /** LocalStorageのキー */
 const STORAGE_KEY = 'hiragana-training-data'
 
 /** 現在のデータ構造バージョン */
-export const DATA_VERSION = 3
+export const DATA_VERSION = 2
 
 /** v1を含む保存済み進捗の移行入力 */
 interface StoredCharacterProgress {
@@ -41,7 +41,7 @@ export function createEmptyProgress(): CharacterProgress {
 /** 初期ストアデータ */
 export function createInitialStore(): LearningStoreData {
   const characters: Record<string, CharacterProgress> = {}
-  for (const c of ALL_CHARACTERS) {
+  for (const c of HIRAGANA_CHARACTERS) {
     characters[c.id] = createEmptyProgress()
   }
   return {
@@ -86,11 +86,11 @@ function normalizeProgress(
   }
 }
 
-/** 既存記録を保持し、不足している文字を空の記録で追加する */
+/** v1の書き記録を保持しつつ、音声・テストを持たないv2へ移行する */
 function migrate(data: StoredLearningData): LearningStoreData {
   const initial = createInitialStore()
   const characters: Record<string, CharacterProgress> = {}
-  for (const c of ALL_CHARACTERS) {
+  for (const c of HIRAGANA_CHARACTERS) {
     characters[c.id] = normalizeProgress(data.characters?.[c.id])
   }
 
