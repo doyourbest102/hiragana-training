@@ -36,6 +36,15 @@ export function HomePage() {
           학습 기록
         </Link>
         <Link
+          to="/useful-info"
+          className="flex h-14 flex-col items-center justify-center rounded-2xl bg-white px-3 text-teal-800 shadow-sm ring-1 ring-teal-100 transition active:scale-[0.98]"
+        >
+          <span className="font-bold">役立つ情報</span>
+          <span className="mt-0.5 text-xs text-teal-700/75">
+            文字や日本語の知識を学びます
+          </span>
+        </Link>
+        <Link
           to="/guide"
           className="flex h-14 items-center justify-center rounded-2xl bg-white text-lg font-bold text-teal-800 shadow-sm ring-1 ring-teal-100 transition active:scale-[0.98]"
         >

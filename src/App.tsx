@@ -6,6 +6,8 @@ import { ProgressPage } from './pages/ProgressPage'
 import { GuidePage } from './pages/GuidePage'
 import { CharacterListPage } from './pages/CharacterListPage'
 import { ScriptSelectPage } from './pages/ScriptSelectPage'
+import { UsefulInfoPage } from './pages/UsefulInfoPage'
+import { DakutenPage } from './pages/DakutenPage'
 
 export default function App() {
   return (
@@ -21,6 +23,8 @@ export default function App() {
           />
           <Route path="/study/:script/:characterId" element={<StudyPage />} />
           <Route path="/progress" element={<ProgressPage />} />
+          <Route path="/useful-info" element={<UsefulInfoPage />} />
+          <Route path="/useful-info/dakuten" element={<DakutenPage />} />
           <Route path="/guide" element={<GuidePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
