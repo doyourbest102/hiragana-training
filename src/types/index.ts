@@ -1,5 +1,8 @@
+/** 文字種 */
+export type CharacterScript = 'hiragana' | 'katakana'
+
 /** 五十音の行（濁音・半濁音追加時も拡張しやすい） */
-export type HiraganaRow =
+export type CharacterRow =
   | 'あ'
   | 'か'
   | 'さ'
@@ -14,18 +17,20 @@ export type HiraganaRow =
 /** 文字の種類（将来の濁音・拗音追加用） */
 export type CharacterCategory = 'seion' | 'dakuon' | 'handakuon' | 'youon'
 
-/** ひらがな1文字の定義データ */
+/** 練習する1文字の定義データ */
 export interface Character {
   /** 一意ID（例: "a", "ka"） */
   id: string
-  /** ひらがな本体 */
-  hiragana: string
+  /** 表示・練習する文字 */
+  character: string
   /** 韓国語の読み方 */
   koreanReading: string
   /** 五十音の行 */
-  row: HiraganaRow
+  row: CharacterRow
   /** 文字カテゴリ */
   category: CharacterCategory
+  /** ひらがな・カタカナの区別 */
+  script: CharacterScript
 }
 
 /** 1文字あたりの学習進捗 */
@@ -59,10 +64,3 @@ export interface LearningStoreData {
   todayDate: string | null
 }
 
-/** 勉強モードの開始オプション */
-export interface StudyOptions {
-  /** 特定の文字だけ練習する場合のID一覧。未指定なら文字選択画面 */
-  characterIds?: string[]
-  /** 結果画面からの遷移理由など */
-  source?: 'single' | 'picker'
-}

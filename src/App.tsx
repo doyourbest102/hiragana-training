@@ -4,6 +4,8 @@ import { HomePage } from './pages/HomePage'
 import { StudyPage } from './pages/StudyPage'
 import { ProgressPage } from './pages/ProgressPage'
 import { GuidePage } from './pages/GuidePage'
+import { CharacterListPage } from './pages/CharacterListPage'
+import { ScriptSelectPage } from './pages/ScriptSelectPage'
 
 export default function App() {
   return (
@@ -11,7 +13,13 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/study" element={<StudyPage />} />
+          <Route path="/study" element={<ScriptSelectPage />} />
+          <Route path="/study/:script" element={<CharacterListPage />} />
+          <Route
+            path="/study/:script/single/:characterId"
+            element={<StudyPage single />}
+          />
+          <Route path="/study/:script/:characterId" element={<StudyPage />} />
           <Route path="/progress" element={<ProgressPage />} />
           <Route path="/guide" element={<GuidePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
