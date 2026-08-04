@@ -6,7 +6,7 @@ import { daysBetween, getTodayString } from '../utils/date'
 const STORAGE_KEY = 'hiragana-training-data'
 
 /** 現在のデータ構造バージョン */
-export const DATA_VERSION = 3
+export const DATA_VERSION = 4
 
 /** v1を含む保存済み進捗の移行入力 */
 interface StoredCharacterProgress {
@@ -17,6 +17,7 @@ interface StoredCharacterProgress {
   incorrectCount?: number
   isWeak?: boolean
   isMastered?: boolean
+  status?: string
 }
 
 interface StoredLearningData {
@@ -34,7 +35,7 @@ export function createEmptyProgress(): CharacterProgress {
   return {
     studyCount: 0,
     writeCount: 0,
-    isMastered: false,
+    status: '未習得',
   }
 }
 
@@ -76,13 +77,26 @@ function normalizeProgress(
   progress: StoredCharacterProgress | undefined,
 ): CharacterProgress {
   if (!progress) return createEmptyProgress()
+  const writeCount = safeCount(progress.writeCount)
+  const legacyMastered =
+    typeof progress.isMastered === 'boolean'
+      ? progress.isMastered
+      : wasLegacyMastered(progress)
+  const status: LearningStatus =
+    progress.status === '学習中' || progress.status === '習得済み'
+      ? progress.status
+      : progress.status === '未習得' || progress.status === '未学習'
+        ? '未習得'
+        : legacyMastered
+          ? '習得済み'
+          : writeCount >= 1
+            ? '学習中'
+            : '未習得'
+
   return {
     studyCount: safeCount(progress.studyCount),
-    writeCount: safeCount(progress.writeCount),
-    isMastered:
-      typeof progress.isMastered === 'boolean'
-        ? progress.isMastered
-        : wasLegacyMastered(progress),
+    writeCount,
+    status,
   }
 }
 
@@ -174,23 +188,28 @@ export function recordStudyDay(data: LearningStoreData): LearningStoreData {
   return next
 }
 
-/** 学習ステータスを算出 */
+/** 保存済みの学習ステータスを取得 */
 export function getLearningStatus(progress: CharacterProgress): LearningStatus {
-  if (progress.isMastered) return '習得済み'
-  if (progress.writeCount >= 1) return '学習中'
-  return '未学習'
+  return progress.status
 }
 
-/** 学習済み文字数（書いた、または手動で習得済みにした文字） */
+/** 学習記録画面で使う状態の循環順 */
+export function getNextLearningStatus(status: LearningStatus): LearningStatus {
+  if (status === '未習得') return '学習中'
+  if (status === '学習中') return '習得済み'
+  return '未習得'
+}
+
+/** 未習得以外の文字数 */
 export function getLearnedCount(data: LearningStoreData): number {
   return Object.values(data.characters).filter(
-    (progress) => progress.writeCount > 0 || progress.isMastered,
+    (progress) => progress.status !== '未習得',
   ).length
 }
 
-/** 手動で習得済みにした文字数 */
+/** 習得済み文字数 */
 export function getMasteredCount(data: LearningStoreData): number {
   return Object.values(data.characters).filter(
-    (progress) => progress.isMastered,
+    (progress) => progress.status === '習得済み',
   ).length
 }

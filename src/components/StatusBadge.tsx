@@ -4,22 +4,22 @@ const STATUS_STYLES: Record<
   LearningStatus,
   { bg: string; label: string; shortLabel: string; icon: string }
 > = {
-  未学習: {
+  未習得: {
     bg: 'bg-slate-100 text-slate-600',
-    label: '미학습',
-    shortLabel: '전',
+    label: '未習得',
+    shortLabel: '未習得',
     icon: '・',
   },
   学習中: {
     bg: 'bg-amber-100 text-amber-800',
-    label: '학습 중',
-    shortLabel: '중',
+    label: '学習中',
+    shortLabel: '学習中',
     icon: '△',
   },
   習得済み: {
     bg: 'bg-sky-100 text-sky-800',
-    label: '학습 완료',
-    shortLabel: '완',
+    label: '習得済み',
+    shortLabel: '習得済み',
     icon: '◎',
   },
 }

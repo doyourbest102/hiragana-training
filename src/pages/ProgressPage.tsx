@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { Layout } from '../components/Layout'
 import { StatusBadge, STATUS_STYLES } from '../components/StatusBadge'
@@ -8,14 +8,14 @@ import {
   groupByRow,
   isCharacterScript,
 } from '../data/characters'
+import { getNextLearningStatus } from '../services/storage'
 import { useLearningStore } from '../store/LearningContext'
 import type { CharacterScript, LearningStatus } from '../types'
 
 /** 学習記録画面 */
 export function ProgressPage() {
-  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const { summary, getProgress, getStatus, setMastered, resetAll } =
+  const { summary, getProgress, getStatus, cycleStatus, resetAll } =
     useLearningStore()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const scriptParam = searchParams.get('script') ?? undefined
@@ -31,14 +31,13 @@ export function ProgressPage() {
       acc[s] += 1
       return acc
     },
-    { 未学習: 0, 学習中: 0, 習得済み: 0 } as Record<LearningStatus, number>,
+    { 未習得: 0, 学習中: 0, 習得済み: 0 } as Record<LearningStatus, number>,
   )
-  const learnedCount = characters.filter((character) => {
-    const progress = getProgress(character.id)
-    return progress.writeCount > 0 || progress.isMastered
-  }).length
+  const learnedCount = characters.filter(
+    (character) => getStatus(character.id) !== '未習得',
+  ).length
   const masteredCount = characters.filter(
-    (character) => getProgress(character.id).isMastered,
+    (character) => getStatus(character.id) === '習得済み',
   ).length
   const scriptLabel = activeScript === 'hiragana' ? '히라가나' : '가타카나'
 
@@ -68,6 +67,15 @@ export function ProgressPage() {
         })}
       </div>
 
+      <section className="mb-4 rounded-2xl bg-white p-3 text-sm text-teal-900 ring-1 ring-teal-100">
+        <p className="font-bold">文字をタップすると、学習状態を変更できます。</p>
+        <ul className="mt-2 grid grid-cols-3 gap-1 text-center text-xs">
+          <li>・ 未習得</li>
+          <li>△ 学習中</li>
+          <li>◎ 習得済み</li>
+        </ul>
+      </section>
+
       {/* 全体進捗 */}
       <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-teal-50">
         <h2 className="text-sm font-bold text-teal-900">
@@ -94,7 +102,7 @@ export function ProgressPage() {
       <section className="mt-6" aria-label={`${scriptLabel} 표`}>
         <h2 className="mb-2 text-sm font-bold text-teal-900">{scriptLabel} 표</h2>
         <p className="mb-3 text-xs text-teal-700/70">
-          글자를 누르면 해당 글자만 연습할 수 있습니다
+          文字をタップすると状態が変わります
         </p>
 
         <div className="space-y-3">
@@ -106,22 +114,21 @@ export function ProgressPage() {
                   const progress = getProgress(c.id)
                   const status = getStatus(c.id)
                   const style = STATUS_STYLES[status]
+                  const nextStatus = getNextLearningStatus(status)
 
                   return (
                     <button
                       key={c.id}
                       type="button"
-                      onClick={() =>
-                        navigate(`/study/${activeScript}/single/${c.id}`)
-                      }
-                      className={`flex flex-col items-center rounded-xl p-2 ${style.bg} transition active:scale-95`}
-                      aria-label={`${c.character}, ${style.label}, 학습 ${progress.studyCount}회`}
+                      onClick={() => cycleStatus(c.id)}
+                      className={`flex min-h-16 flex-col items-center justify-center rounded-xl p-1.5 ${style.bg} transition active:scale-95`}
+                      aria-label={`${c.character}、現在は${style.label}、タップすると${nextStatus}`}
                     >
                       <span className="text-2xl font-extrabold leading-none">
                         {c.character}
                       </span>
                       <span className="mt-1 text-[9px] font-medium opacity-80">
-                        {style.shortLabel}
+                        {style.icon} {style.shortLabel}
                       </span>
                       <span className="sr-only">
                         학습 {progress.studyCount}회, 쓰기 {progress.writeCount}회
@@ -137,54 +144,6 @@ export function ProgressPage() {
             </div>
           ))}
         </div>
-      </section>
-
-      {/* 詳細リスト（選択文字の数値） */}
-      <section className="mt-6" aria-label="글자별 상세">
-        <h2 className="mb-2 text-sm font-bold text-teal-900">글자별 기록</h2>
-        <ul className="max-h-80 space-y-2 overflow-y-auto rounded-2xl bg-white p-3 ring-1 ring-teal-50">
-          {characters.map((c) => {
-            const p = getProgress(c.id)
-            return (
-              <li
-                key={c.id}
-                className="border-b border-teal-50 py-3 text-sm last:border-0"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    className="flex min-h-11 items-center gap-2 font-bold text-teal-900"
-                    onClick={() =>
-                      navigate(`/study/${activeScript}/single/${c.id}`)
-                    }
-                    aria-label={`${c.character} 연습하기`}
-                  >
-                    <span className="text-xl">{c.character}</span>
-                    <StatusBadge status={getStatus(c.id)} compact />
-                  </button>
-                  <div className="text-right text-xs text-teal-700/80">
-                    학습 {p.studyCount} / 쓰기 {p.writeCount}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  aria-pressed={p.isMastered}
-                  aria-label={`${c.character} ${
-                    p.isMastered ? '학습 완료 취소' : '학습 완료로 설정'
-                  }`}
-                  onClick={() => setMastered(c.id, !p.isMastered)}
-                  className={`mt-2 flex min-h-11 w-full items-center justify-center rounded-xl px-3 text-xs font-bold ring-1 ${
-                    p.isMastered
-                      ? 'bg-sky-100 text-sky-800 ring-sky-200'
-                      : 'bg-white text-teal-800 ring-teal-200'
-                  }`}
-                >
-                  {p.isMastered ? '학습 완료 취소' : '학습 완료로 설정'}
-                </button>
-              </li>
-            )
-          })}
-        </ul>
       </section>
 
       <button

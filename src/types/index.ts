@@ -39,12 +39,12 @@ export interface CharacterProgress {
   studyCount: number
   /** キャンバスに書いた回数 */
   writeCount: number
-  /** 利用者が手動で設定する習得済み状態 */
-  isMastered: boolean
+  /** 書いた回数とは独立して保存する学習状態 */
+  status: LearningStatus
 }
 
 /** 学習ステータス（五十音表の色分け用） */
-export type LearningStatus = '未学習' | '学習中' | '習得済み'
+export type LearningStatus = '未習得' | '学習中' | '習得済み'
 
 /** LocalStorageに保存する全体データ */
 export interface LearningStoreData {

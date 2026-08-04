@@ -13,6 +13,7 @@ import {
   getLearnedCount,
   getLearningStatus,
   getMasteredCount,
+  getNextLearningStatus,
   loadStore,
   recordStudyDay,
   resetStore,
@@ -23,8 +24,8 @@ interface LearningContextValue {
   data: LearningStoreData
   /** 勉強モードで1文字練習したとき */
   recordWriting: (characterId: string, writeTimes: number) => void
-  /** 文字の習得済み状態を手動で変更 */
-  setMastered: (characterId: string, isMastered: boolean) => void
+  /** 学習記録画面で状態を次へ進める */
+  cycleStatus: (characterId: string) => void
   /** 学習セッション開始（連続日数など更新） */
   startSession: () => void
   /** 学習記録をリセット */
@@ -62,6 +63,7 @@ export function LearningProvider({ children }: { children: ReactNode }) {
         ...current,
         writeCount: current.writeCount + writeTimes,
         studyCount: current.studyCount + 1,
+        status: current.status === '未習得' ? '学習中' : current.status,
       }
       return {
         ...prev,
@@ -73,12 +75,12 @@ export function LearningProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
-  const setMastered = useCallback((characterId: string, isMastered: boolean) => {
+  const cycleStatus = useCallback((characterId: string) => {
     setData((prev) => {
       const current = prev.characters[characterId] ?? createEmptyProgress()
       const updated: CharacterProgress = {
         ...current,
-        isMastered,
+        status: getNextLearningStatus(current.status),
       }
       return {
         ...prev,
@@ -118,7 +120,7 @@ export function LearningProvider({ children }: { children: ReactNode }) {
   const value: LearningContextValue = {
     data,
     recordWriting,
-    setMastered,
+    cycleStatus,
     startSession,
     resetAll,
     summary,
