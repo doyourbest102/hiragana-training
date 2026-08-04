@@ -1,0 +1,65 @@
+import type { Character } from '../types'
+
+/** カタカナ清音46文字。ひらがなの既存IDと衝突しないIDを使用する。 */
+const KATAKANA_DATA: Omit<Character, 'script'>[] = [
+  // あ行
+  { id: 'katakana-a', character: 'ア', koreanReading: '아', row: 'あ', category: 'seion' },
+  { id: 'katakana-i', character: 'イ', koreanReading: '이', row: 'あ', category: 'seion' },
+  { id: 'katakana-u', character: 'ウ', koreanReading: '우', row: 'あ', category: 'seion' },
+  { id: 'katakana-e', character: 'エ', koreanReading: '에', row: 'あ', category: 'seion' },
+  { id: 'katakana-o', character: 'オ', koreanReading: '오', row: 'あ', category: 'seion' },
+  // か行
+  { id: 'katakana-ka', character: 'カ', koreanReading: '카', row: 'か', category: 'seion' },
+  { id: 'katakana-ki', character: 'キ', koreanReading: '키', row: 'か', category: 'seion' },
+  { id: 'katakana-ku', character: 'ク', koreanReading: '쿠', row: 'か', category: 'seion' },
+  { id: 'katakana-ke', character: 'ケ', koreanReading: '케', row: 'か', category: 'seion' },
+  { id: 'katakana-ko', character: 'コ', koreanReading: '코', row: 'か', category: 'seion' },
+  // さ行
+  { id: 'katakana-sa', character: 'サ', koreanReading: '사', row: 'さ', category: 'seion' },
+  { id: 'katakana-shi', character: 'シ', koreanReading: '시', row: 'さ', category: 'seion' },
+  { id: 'katakana-su', character: 'ス', koreanReading: '스', row: 'さ', category: 'seion' },
+  { id: 'katakana-se', character: 'セ', koreanReading: '세', row: 'さ', category: 'seion' },
+  { id: 'katakana-so', character: 'ソ', koreanReading: '소', row: 'さ', category: 'seion' },
+  // た行
+  { id: 'katakana-ta', character: 'タ', koreanReading: '타', row: 'た', category: 'seion' },
+  { id: 'katakana-chi', character: 'チ', koreanReading: '치', row: 'た', category: 'seion' },
+  { id: 'katakana-tsu', character: 'ツ', koreanReading: '츠', row: 'た', category: 'seion' },
+  { id: 'katakana-te', character: 'テ', koreanReading: '테', row: 'た', category: 'seion' },
+  { id: 'katakana-to', character: 'ト', koreanReading: '토', row: 'た', category: 'seion' },
+  // な行
+  { id: 'katakana-na', character: 'ナ', koreanReading: '나', row: 'な', category: 'seion' },
+  { id: 'katakana-ni', character: 'ニ', koreanReading: '니', row: 'な', category: 'seion' },
+  { id: 'katakana-nu', character: 'ヌ', koreanReading: '누', row: 'な', category: 'seion' },
+  { id: 'katakana-ne', character: 'ネ', koreanReading: '네', row: 'な', category: 'seion' },
+  { id: 'katakana-no', character: 'ノ', koreanReading: '노', row: 'な', category: 'seion' },
+  // は行
+  { id: 'katakana-ha', character: 'ハ', koreanReading: '하', row: 'は', category: 'seion' },
+  { id: 'katakana-hi', character: 'ヒ', koreanReading: '히', row: 'は', category: 'seion' },
+  { id: 'katakana-fu', character: 'フ', koreanReading: '후', row: 'は', category: 'seion' },
+  { id: 'katakana-he', character: 'ヘ', koreanReading: '헤', row: 'は', category: 'seion' },
+  { id: 'katakana-ho', character: 'ホ', koreanReading: '호', row: 'は', category: 'seion' },
+  // ま行
+  { id: 'katakana-ma', character: 'マ', koreanReading: '마', row: 'ま', category: 'seion' },
+  { id: 'katakana-mi', character: 'ミ', koreanReading: '미', row: 'ま', category: 'seion' },
+  { id: 'katakana-mu', character: 'ム', koreanReading: '무', row: 'ま', category: 'seion' },
+  { id: 'katakana-me', character: 'メ', koreanReading: '메', row: 'ま', category: 'seion' },
+  { id: 'katakana-mo', character: 'モ', koreanReading: '모', row: 'ま', category: 'seion' },
+  // や行
+  { id: 'katakana-ya', character: 'ヤ', koreanReading: '야', row: 'や', category: 'seion' },
+  { id: 'katakana-yu', character: 'ユ', koreanReading: '유', row: 'や', category: 'seion' },
+  { id: 'katakana-yo', character: 'ヨ', koreanReading: '요', row: 'や', category: 'seion' },
+  // ら行
+  { id: 'katakana-ra', character: 'ラ', koreanReading: '라', row: 'ら', category: 'seion' },
+  { id: 'katakana-ri', character: 'リ', koreanReading: '리', row: 'ら', category: 'seion' },
+  { id: 'katakana-ru', character: 'ル', koreanReading: '루', row: 'ら', category: 'seion' },
+  { id: 'katakana-re', character: 'レ', koreanReading: '레', row: 'ら', category: 'seion' },
+  { id: 'katakana-ro', character: 'ロ', koreanReading: '로', row: 'ら', category: 'seion' },
+  // わ行
+  { id: 'katakana-wa', character: 'ワ', koreanReading: '와', row: 'わ', category: 'seion' },
+  { id: 'katakana-wo', character: 'ヲ', koreanReading: '오', row: 'わ', category: 'seion' },
+  { id: 'katakana-n', character: 'ン', koreanReading: '응', row: 'わ', category: 'seion' },
+]
+
+export const KATAKANA_CHARACTERS: Character[] = KATAKANA_DATA.map(
+  (character) => ({ ...character, script: 'katakana' }),
+)
