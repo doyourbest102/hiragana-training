@@ -7,7 +7,11 @@ import {
   WritingCanvas,
   type WritingCanvasHandle,
 } from '../components/WritingCanvas'
-import { getCharacterById, groupByRow } from '../data/hiragana'
+import {
+  getCharacterById,
+  groupByRow,
+  HIRAGANA_CHARACTERS,
+} from '../data/hiragana'
 import { useLearningStore } from '../store/LearningContext'
 import type { StudyOptions } from '../types'
 
@@ -23,12 +27,25 @@ export function StudyPage() {
 
   const characters = useMemo(() => {
     if (!options.characterIds) return []
-    return options.characterIds
+    const selectedCharacters = options.characterIds
       .map((id) => getCharacterById(id))
       .filter((c): c is NonNullable<typeof c> => Boolean(c))
-  }, [options.characterIds])
+
+    if (options.source !== 'picker' || selectedCharacters.length !== 1) {
+      return selectedCharacters
+    }
+
+    const startIndex = HIRAGANA_CHARACTERS.findIndex(
+      (character) => character.id === selectedCharacters[0].id,
+    )
+    return startIndex >= 0
+      ? HIRAGANA_CHARACTERS.slice(startIndex)
+      : selectedCharacters
+  }, [options.characterIds, options.source])
   const rows = useMemo(() => groupByRow(), [])
-  const selectionKey = options.characterIds?.join('|') ?? ''
+  const selectionKey = `${options.source ?? ''}:${
+    options.characterIds?.join('|') ?? ''
+  }`
 
   const [index, setIndex] = useState(0)
   const [practiceCount, setPracticeCount] = useState(0)
@@ -73,7 +90,7 @@ export function StudyPage() {
     return (
       <Layout title="연습할 글자 선택" showBack>
         <p className="mb-4 text-sm text-teal-800/80">
-          히라가나를 누르면 해당 글자를 연습할 수 있습니다.
+          히라가나를 누르면 해당 글자부터 순서대로 연습할 수 있습니다.
         </p>
         <div className="space-y-3" aria-label="히라가나 표">
           {Object.entries(rows).map(([row, chars]) => (
@@ -98,7 +115,7 @@ export function StudyPage() {
                       })
                     }
                     className="flex h-14 items-center justify-center rounded-xl bg-white text-2xl font-extrabold text-teal-900 shadow-sm ring-1 ring-teal-100 transition active:scale-95"
-                    aria-label={`${character.hiragana} 연습하기`}
+                    aria-label={`${character.hiragana}부터 연습하기`}
                   >
                     {character.hiragana}
                   </button>
@@ -133,18 +150,9 @@ export function StudyPage() {
   }
 
   if (finished) {
-    const returnPath =
-      options.source === 'single'
-        ? '/progress'
-        : options.source === 'picker'
-          ? '/study'
-          : '/'
+    const returnPath = options.source === 'picker' ? '/study' : '/'
     const returnLabel =
-      options.source === 'single'
-        ? '학습 기록으로 돌아가기'
-        : options.source === 'picker'
-          ? '다른 글자 선택하기'
-          : '홈으로'
+      options.source === 'picker' ? '다른 글자 선택하기' : '홈으로'
 
     return (
       <Layout title="학습 완료" showBack backTo={returnPath}>
@@ -200,7 +208,9 @@ export function StudyPage() {
 
     recordWriting(current.id, Math.max(effectivePractice, MIN_PRACTICE))
 
-    if (index >= characters.length - 1) {
+    if (options.source === 'single') {
+      navigate('/progress', { replace: true })
+    } else if (index >= characters.length - 1) {
       setFinished(true)
     } else {
       canvasRef.current?.clear()
@@ -210,13 +220,13 @@ export function StudyPage() {
     }
   }
 
-  const isSingleCharacter = characters.length === 1
+  const isSinglePractice = options.source === 'single'
   const isLastCharacter = index >= characters.length - 1
-  const actionLabel = isSingleCharacter
+  const actionLabel = isSinglePractice
     ? '연습 완료하기'
     : isLastCharacter
       ? '학습 완료하기'
-      : '다음 글자로'
+      : '다음'
 
   return (
     <Layout
