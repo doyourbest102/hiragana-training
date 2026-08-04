@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { LearningProvider } from './store/LearningContext'
 import { HomePage } from './pages/HomePage'
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+      <Analytics />
     </LearningProvider>
   )
 }
