@@ -223,7 +223,7 @@ export function StudyPage() {
       <div className="mt-4 flex flex-col items-center text-center">
         <StrokeOrderGuide hiragana={current.hiragana} />
         <p className="mt-2 text-xl font-medium tracking-wide text-teal-700">
-          {current.romaji}
+          {current.koreanReading}
         </p>
       </div>
 

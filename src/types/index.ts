@@ -20,8 +20,8 @@ export interface Character {
   id: string
   /** ひらがな本体 */
   hiragana: string
-  /** ローマ字 */
-  romaji: string
+  /** 韓国語の読み方 */
+  koreanReading: string
   /** 五十音の行 */
   row: HiraganaRow
   /** 文字カテゴリ */
