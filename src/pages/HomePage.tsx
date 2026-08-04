@@ -39,9 +39,9 @@ export function HomePage() {
           to="/useful-info"
           className="flex h-14 flex-col items-center justify-center rounded-2xl bg-white px-3 text-teal-800 shadow-sm ring-1 ring-teal-100 transition active:scale-[0.98]"
         >
-          <span className="font-bold">役立つ情報</span>
-          <span className="mt-0.5 text-xs text-teal-700/75">
-            文字や日本語の知識を学びます
+          <span className="font-bold">유용한 정보</span>
+          <span className="mt-0.5 whitespace-nowrap text-[10px] leading-none text-teal-700/75">
+            문자와 일본어 학습에 도움이 되는 내용을 배웁니다.
           </span>
         </Link>
         <Link
