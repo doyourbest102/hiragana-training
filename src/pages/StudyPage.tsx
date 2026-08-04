@@ -35,6 +35,7 @@ export function StudyPage() {
   const [hasInk, setHasInk] = useState(false)
   const [finished, setFinished] = useState(false)
   const sessionStarted = useRef(false)
+  const isAdvancingRef = useRef(false)
 
   const current = characters[index]
   // 今キャンバスに書いている分も練習回数に含める
@@ -58,12 +59,14 @@ export function StudyPage() {
     setPracticeCount(0)
     setHasInk(false)
     setFinished(false)
+    isAdvancingRef.current = false
   }, [selectionKey])
 
   // 文字が変わったら練習回数をリセット
   useEffect(() => {
     setPracticeCount(0)
     setHasInk(false)
+    isAdvancingRef.current = false
   }, [index])
 
   if (!options.characterIds) {
@@ -163,6 +166,7 @@ export function StudyPage() {
                 setIndex(0)
                 setPracticeCount(0)
                 setFinished(false)
+                isAdvancingRef.current = false
               }}
               className="flex h-12 items-center justify-center rounded-xl bg-teal-600 font-bold text-white"
             >
@@ -191,16 +195,28 @@ export function StudyPage() {
   }
 
   const handleNext = () => {
-    if (!canGoNext || !current) return
+    if (isAdvancingRef.current || !canGoNext || !current) return
+    isAdvancingRef.current = true
 
     recordWriting(current.id, Math.max(effectivePractice, MIN_PRACTICE))
 
     if (index >= characters.length - 1) {
       setFinished(true)
     } else {
+      canvasRef.current?.clear()
+      setPracticeCount(0)
+      setHasInk(false)
       setIndex((i) => i + 1)
     }
   }
+
+  const isSingleCharacter = characters.length === 1
+  const isLastCharacter = index >= characters.length - 1
+  const actionLabel = isSingleCharacter
+    ? '연습 완료하기'
+    : isLastCharacter
+      ? '학습 완료하기'
+      : '다음 글자로'
 
   return (
     <Layout
@@ -266,7 +282,7 @@ export function StudyPage() {
             disabled={!canGoNext}
             className="flex h-12 items-center justify-center rounded-xl bg-teal-600 font-bold text-white disabled:bg-teal-300"
           >
-            {index >= characters.length - 1 ? '완료하기' : '다음 글자'}
+            {actionLabel}
           </button>
         </div>
 
