@@ -10,7 +10,7 @@ export function HomePage() {
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-4 pb-10 pt-[max(1.5rem,env(safe-area-inset-top))]">
       {/* ブランドをヒーロー級に配置 */}
       <header className="mb-8 text-center">
-        <p className="text-sm font-medium tracking-wide text-teal-600">쓰고 들으며 익히기</p>
+        <p className="text-sm font-medium tracking-wide text-teal-600">쓰면서 익히기</p>
         <h1 className="mt-2 text-4xl font-extrabold leading-tight text-teal-900 sm:text-5xl">
           히라가나
           <br />
@@ -30,22 +30,10 @@ export function HomePage() {
           학습 모드
         </Link>
         <Link
-          to="/test"
-          className="flex h-14 items-center justify-center rounded-2xl bg-amber-400 text-lg font-bold text-amber-950 shadow-md transition active:scale-[0.98]"
-        >
-          테스트 모드
-        </Link>
-        <Link
           to="/progress"
           className="flex h-14 items-center justify-center rounded-2xl bg-white text-lg font-bold text-teal-800 shadow-sm ring-1 ring-teal-100 transition active:scale-[0.98]"
         >
           학습 기록
-        </Link>
-        <Link
-          to="/weak"
-          className="flex h-14 items-center justify-center rounded-2xl bg-orange-100 text-lg font-bold text-orange-900 shadow-sm ring-1 ring-orange-200 transition active:scale-[0.98]"
-        >
-          취약 글자 연습
         </Link>
         <Link
           to="/guide"
@@ -66,8 +54,8 @@ export function HomePage() {
           value={`${summary.learnedCount}/${summary.totalCharacters}`}
         />
         <StatCard
-          label="정답률"
-          value={summary.overallAccuracy === null ? '—' : `${summary.overallAccuracy}%`}
+          label="학습 완료"
+          value={`${summary.masteredCount}/${summary.totalCharacters}`}
         />
         <StatCard label="연속 학습" value={`${summary.streakDays}일`} />
       </section>

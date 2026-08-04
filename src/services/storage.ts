@@ -6,17 +6,35 @@ import { daysBetween, getTodayString } from '../utils/date'
 const STORAGE_KEY = 'hiragana-training-data'
 
 /** 現在のデータ構造バージョン */
-export const DATA_VERSION = 1
+export const DATA_VERSION = 2
+
+/** v1を含む保存済み進捗の移行入力 */
+interface StoredCharacterProgress {
+  studyCount?: number
+  writeCount?: number
+  testCount?: number
+  correctCount?: number
+  incorrectCount?: number
+  isWeak?: boolean
+  isMastered?: boolean
+}
+
+interface StoredLearningData {
+  version?: number
+  characters?: Record<string, StoredCharacterProgress>
+  lastStudyDate?: string | null
+  streakDays?: number
+  totalStudySessions?: number
+  todayStudyCount?: number
+  todayDate?: string | null
+}
 
 /** 空の1文字分進捗 */
 export function createEmptyProgress(): CharacterProgress {
   return {
     studyCount: 0,
     writeCount: 0,
-    testCount: 0,
-    correctCount: 0,
-    incorrectCount: 0,
-    isWeak: false,
+    isMastered: false,
   }
 }
 
@@ -37,19 +55,60 @@ export function createInitialStore(): LearningStoreData {
   }
 }
 
-/**
- * 古いデータがあれば将来ここで移行処理を行う。
- * 現状はバージョン不一致時に不足キーを補完する。
- */
-function migrate(data: LearningStoreData): LearningStoreData {
-  // 不足している文字の進捗を追加（文字データが増えた場合）
-  for (const c of HIRAGANA_CHARACTERS) {
-    if (!data.characters[c.id]) {
-      data.characters[c.id] = createEmptyProgress()
-    }
+function safeCount(value: number | undefined): number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0
+    ? value
+    : 0
+}
+
+/** v1で習得済みだった文字を手動習得状態として引き継ぐ */
+function wasLegacyMastered(progress: StoredCharacterProgress): boolean {
+  if (progress.isWeak) return false
+  const writeCount = safeCount(progress.writeCount)
+  const testCount = safeCount(progress.testCount)
+  const correctCount = safeCount(progress.correctCount)
+  const goodAccuracy =
+    testCount === 0 || correctCount / testCount >= 0.7
+  return writeCount >= 3 && goodAccuracy
+}
+
+function normalizeProgress(
+  progress: StoredCharacterProgress | undefined,
+): CharacterProgress {
+  if (!progress) return createEmptyProgress()
+  return {
+    studyCount: safeCount(progress.studyCount),
+    writeCount: safeCount(progress.writeCount),
+    isMastered:
+      typeof progress.isMastered === 'boolean'
+        ? progress.isMastered
+        : wasLegacyMastered(progress),
   }
-  data.version = DATA_VERSION
-  return data
+}
+
+/** v1の書き記録を保持しつつ、音声・テストを持たないv2へ移行する */
+function migrate(data: StoredLearningData): LearningStoreData {
+  const initial = createInitialStore()
+  const characters: Record<string, CharacterProgress> = {}
+  for (const c of HIRAGANA_CHARACTERS) {
+    characters[c.id] = normalizeProgress(data.characters?.[c.id])
+  }
+
+  return {
+    version: DATA_VERSION,
+    characters,
+    lastStudyDate:
+      typeof data.lastStudyDate === 'string' || data.lastStudyDate === null
+        ? data.lastStudyDate
+        : initial.lastStudyDate,
+    streakDays: safeCount(data.streakDays),
+    totalStudySessions: safeCount(data.totalStudySessions),
+    todayStudyCount: safeCount(data.todayStudyCount),
+    todayDate:
+      typeof data.todayDate === 'string' || data.todayDate === null
+        ? data.todayDate
+        : initial.todayDate,
+  }
 }
 
 /** LocalStorageから読み込み */
@@ -59,7 +118,7 @@ export function loadStore(): LearningStoreData {
     if (!raw) {
       return createInitialStore()
     }
-    const parsed = JSON.parse(raw) as LearningStoreData
+    const parsed = JSON.parse(raw) as StoredLearningData
     const migrated = migrate(parsed)
     return refreshTodayCounters(migrated)
   } catch {
@@ -115,57 +174,23 @@ export function recordStudyDay(data: LearningStoreData): LearningStoreData {
   return next
 }
 
-/**
- * 苦手判定を更新する。
- * 出題2回以上かつ正答率50%未満なら苦手とする。
- */
-export function updateWeakFlag(progress: CharacterProgress): CharacterProgress {
-  const isWeak =
-    progress.testCount >= 2 &&
-    progress.correctCount / progress.testCount < 0.5
-  return { ...progress, isWeak }
-}
-
 /** 学習ステータスを算出 */
 export function getLearningStatus(progress: CharacterProgress): LearningStatus {
-  if (progress.isWeak) {
-    return '苦手'
-  }
-  if (progress.writeCount === 0 && progress.testCount === 0) {
-    return '未学習'
-  }
-  // 書き練習3回以上、かつテストがあれば正答率70%以上で習得済み
-  const hasEnoughWriting = progress.writeCount >= 3
-  const goodAccuracy =
-    progress.testCount === 0 ||
-    progress.correctCount / progress.testCount >= 0.7
-  if (hasEnoughWriting && goodAccuracy) {
-    return '習得済み'
-  }
-  return '学習中'
+  if (progress.isMastered) return '習得済み'
+  if (progress.writeCount >= 1) return '学習中'
+  return '未学習'
 }
 
-/** 正答率（0〜100）。出題なしは null */
-export function getAccuracy(progress: CharacterProgress): number | null {
-  if (progress.testCount === 0) return null
-  return Math.round((progress.correctCount / progress.testCount) * 100)
-}
-
-/** 全体の正答率 */
-export function getOverallAccuracy(data: LearningStoreData): number | null {
-  let correct = 0
-  let total = 0
-  for (const p of Object.values(data.characters)) {
-    correct += p.correctCount
-    total += p.testCount
-  }
-  if (total === 0) return null
-  return Math.round((correct / total) * 100)
-}
-
-/** 学習済み文字数（書いた or テストした） */
+/** 学習済み文字数（書いた、または手動で習得済みにした文字） */
 export function getLearnedCount(data: LearningStoreData): number {
   return Object.values(data.characters).filter(
-    (p) => p.writeCount > 0 || p.testCount > 0,
+    (progress) => progress.writeCount > 0 || progress.isMastered,
+  ).length
+}
+
+/** 手動で習得済みにした文字数 */
+export function getMasteredCount(data: LearningStoreData): number {
+  return Object.values(data.characters).filter(
+    (progress) => progress.isMastered,
   ).length
 }

@@ -24,8 +24,6 @@ export interface Character {
   romaji: string
   /** 五十音の行 */
   row: HiraganaRow
-  /** 音声読み上げ用テキスト */
-  speechText: string
   /** 文字カテゴリ */
   category: CharacterCategory
 }
@@ -36,18 +34,12 @@ export interface CharacterProgress {
   studyCount: number
   /** キャンバスに書いた回数 */
   writeCount: number
-  /** テスト出題回数 */
-  testCount: number
-  /** 正解回数 */
-  correctCount: number
-  /** 不正解回数 */
-  incorrectCount: number
-  /** 苦手判定フラグ */
-  isWeak: boolean
+  /** 利用者が手動で設定する習得済み状態 */
+  isMastered: boolean
 }
 
 /** 学習ステータス（五十音表の色分け用） */
-export type LearningStatus = '未学習' | '学習中' | '習得済み' | '苦手'
+export type LearningStatus = '未学習' | '学習中' | '習得済み'
 
 /** LocalStorageに保存する全体データ */
 export interface LearningStoreData {
@@ -67,26 +59,10 @@ export interface LearningStoreData {
   todayDate: string | null
 }
 
-/** テスト1問分 */
-export interface QuizQuestion {
-  correctId: string
-  /** 選択肢の文字ID（正解1 + 不正解3） */
-  optionIds: string[]
-}
-
-/** テスト結果 */
-export interface TestResult {
-  total: number
-  correct: number
-  incorrect: number
-  /** 間違えた文字のID一覧 */
-  wrongIds: string[]
-}
-
 /** 勉強モードの開始オプション */
 export interface StudyOptions {
   /** 特定の文字だけ練習する場合のID一覧。未指定なら文字選択画面 */
   characterIds?: string[]
   /** 結果画面からの遷移理由など */
-  source?: 'all' | 'wrong' | 'single' | 'picker' | 'weak'
+  source?: 'single' | 'picker'
 }

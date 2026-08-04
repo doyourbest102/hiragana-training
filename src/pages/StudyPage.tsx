@@ -2,14 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Layout } from '../components/Layout'
 import { ProgressBar } from '../components/ProgressBar'
-import { SoundButton } from '../components/SoundButton'
 import { StrokeOrderGuide } from '../components/StrokeOrderGuide'
 import {
   WritingCanvas,
   type WritingCanvasHandle,
 } from '../components/WritingCanvas'
 import { getCharacterById, groupByRow } from '../data/hiragana'
-import { useSpeech } from '../hooks/useSpeech'
 import { useLearningStore } from '../store/LearningContext'
 import type { StudyOptions } from '../types'
 
@@ -21,7 +19,6 @@ export function StudyPage() {
   const navigate = useNavigate()
   const options = (location.state as StudyOptions | null) ?? {}
   const { recordWriting, startSession } = useLearningStore()
-  const { speak, isSpeaking, error, clearError } = useSpeech()
   const canvasRef = useRef<WritingCanvasHandle>(null)
 
   const characters = useMemo(() => {
@@ -134,21 +131,17 @@ export function StudyPage() {
 
   if (finished) {
     const returnPath =
-      options.source === 'weak'
-        ? '/weak'
-        : options.source === 'single'
-          ? '/progress'
-          : options.source === 'picker'
-            ? '/study'
-            : '/'
+      options.source === 'single'
+        ? '/progress'
+        : options.source === 'picker'
+          ? '/study'
+          : '/'
     const returnLabel =
-      options.source === 'weak'
-        ? '취약 글자로 돌아가기'
-        : options.source === 'single'
-          ? '학습 기록으로 돌아가기'
-          : options.source === 'picker'
-            ? '다른 글자 선택하기'
-            : '홈으로'
+      options.source === 'single'
+        ? '학습 기록으로 돌아가기'
+        : options.source === 'picker'
+          ? '다른 글자 선택하기'
+          : '홈으로'
 
     return (
       <Layout title="학습 완료" showBack backTo={returnPath}>
@@ -209,24 +202,16 @@ export function StudyPage() {
     }
   }
 
-  const handleSpeak = () => {
-    if (!current) return
-    clearError()
-    void speak({ text: current.speechText, fromUserGesture: true })
-  }
-
   return (
     <Layout
       title="학습 모드"
       showBack
       backTo={
-        options.source === 'weak'
-          ? '/weak'
-          : options.source === 'single'
-            ? '/progress'
-            : options.source === 'picker'
-              ? '/study'
-              : '/'
+        options.source === 'single'
+          ? '/progress'
+          : options.source === 'picker'
+            ? '/study'
+            : '/'
       }
     >
       <ProgressBar
@@ -241,15 +226,6 @@ export function StudyPage() {
           {current.romaji}
         </p>
       </div>
-
-      <div className="mt-4 flex justify-center">
-        <SoundButton onClick={handleSpeak} isSpeaking={isSpeaking} />
-      </div>
-      {error && (
-        <p className="mt-2 text-center text-sm text-red-600" role="alert">
-          {error}
-        </p>
-      )}
 
       <div className="mt-4">
         <WritingCanvas
@@ -288,27 +264,19 @@ export function StudyPage() {
       </div>
 
       {/* 一覧からの単一文字練習で使う戻る導線 */}
-      {(options.source === 'single' ||
-        options.source === 'picker' ||
-        options.source === 'weak') && (
+      {(options.source === 'single' || options.source === 'picker') && (
         <button
           type="button"
           onClick={() =>
             navigate(
-              options.source === 'weak'
-                ? '/weak'
-                : options.source === 'single'
-                  ? '/progress'
-                  : '/study',
+              options.source === 'single' ? '/progress' : '/study',
             )
           }
           className="mt-3 text-center text-sm text-teal-700 underline"
         >
-          {options.source === 'weak'
-            ? '취약 글자로 돌아가기'
-            : options.source === 'single'
-              ? '학습 기록으로 돌아가기'
-              : '글자 선택으로 돌아가기'}
+          {options.source === 'single'
+            ? '학습 기록으로 돌아가기'
+            : '글자 선택으로 돌아가기'}
         </button>
       )}
     </Layout>

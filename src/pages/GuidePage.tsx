@@ -7,8 +7,8 @@ export function GuidePage() {
       <section className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-teal-50">
         <h2 className="text-lg font-extrabold text-teal-900">앱의 목적</h2>
         <p className="mt-2 text-sm leading-relaxed text-teal-800/80">
-          히라가나를 쓰고 들으며 익히는 학습 앱입니다. 쓰기 순서를 확인하고
-          반복해서 쓴 다음, 소리 테스트로 기억했는지 확인할 수 있습니다.
+          히라가나의 쓰기 순서를 확인하고 반복해서 쓰며 익히는 학습 앱입니다.
+          글자별 연습 기록을 확인하고 직접 학습 완료 상태를 관리할 수 있습니다.
         </p>
       </section>
 
@@ -18,32 +18,29 @@ export function GuidePage() {
           <GuideStep number={1} text="학습 모드에서 연습할 글자를 선택합니다." />
           <GuideStep
             number={2}
-            text="쓰기 순서와 소리를 확인하고, 캔버스에 5번 씁니다."
+            text="쓰기 순서를 확인하고 캔버스에 5번 씁니다."
           />
-          <GuideStep number={3} text="테스트 모드에서 들은 글자를 선택합니다." />
+          <GuideStep
+            number={3}
+            text="학습 기록에서 연습 횟수와 쓰기 횟수를 확인합니다."
+          />
           <GuideStep
             number={4}
-            text="취약 글자를 다시 연습하고 학습 기록을 확인합니다."
+            text="익힌 글자는 학습 완료로 설정할 수 있습니다."
           />
         </ol>
       </section>
 
       <section className="mt-5 space-y-3" aria-label="기능별 사용 방법">
         <GuideCard title="학습 모드">
-          히라가나를 선택하면 쓰기 순서 애니메이션이 재생됩니다. 소리 듣기
-          버튼으로 발음을 확인한 뒤 캔버스에 써 보세요. 한 번 쓸 때마다
-          &quot;다시 쓰기&quot;를 누르고, 5번 연습하면 완료할 수 있습니다.
-        </GuideCard>
-        <GuideCard title="테스트 모드">
-          재생되는 소리를 듣고 네 개의 히라가나 중 정답을 선택합니다. 자동
-          재생이 되지 않으면 소리 듣기 버튼을 눌러 주세요.
-        </GuideCard>
-        <GuideCard title="취약 글자 연습">
-          테스트에서 자주 틀린 글자만 모아서 다시 쓰기 연습을 할 수 있습니다.
+          히라가나를 선택하면 쓰기 순서 애니메이션이 재생됩니다. 캔버스에 한
+          번 쓸 때마다 &quot;다시 쓰기&quot;를 누르고, 5번 연습하면 완료할 수
+          있습니다.
         </GuideCard>
         <GuideCard title="학습 기록">
-          글자별 학습 횟수, 쓰기 횟수와 테스트 결과를 확인할 수 있습니다.
-          학습 기록은 현재 기기의 브라우저에 저장됩니다.
+          글자별 학습 횟수와 쓰기 횟수를 확인할 수 있습니다. 익혔다고 판단한
+          글자는 &quot;학습 완료로 설정&quot;을 누르고, 필요하면 언제든 취소할
+          수 있습니다. 기록은 현재 기기의 브라우저에 저장됩니다.
         </GuideCard>
       </section>
     </Layout>

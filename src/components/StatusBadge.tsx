@@ -22,12 +22,6 @@ const STATUS_STYLES: Record<
     shortLabel: '완',
     icon: '◎',
   },
-  苦手: {
-    bg: 'bg-orange-100 text-orange-800',
-    label: '취약',
-    shortLabel: '약',
-    icon: '！',
-  },
 }
 
 interface StatusBadgeProps {

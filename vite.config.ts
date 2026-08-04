@@ -14,7 +14,7 @@ export default defineConfig({
       manifest: {
         name: '히라가나 트레이닝',
         short_name: '히라가나',
-        description: '히라가나를 듣고 쓰며 익히는 학습 앱',
+        description: '히라가나를 쓰며 익히는 학습 앱',
         theme_color: '#0d9488',
         background_color: '#ecfdf5',
         display: 'standalone',

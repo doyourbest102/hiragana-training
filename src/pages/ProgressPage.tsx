@@ -10,7 +10,7 @@ import type { LearningStatus } from '../types'
 /** 学習記録画面 */
 export function ProgressPage() {
   const navigate = useNavigate()
-  const { summary, getProgress, getStatus, getCharAccuracy, resetAll } =
+  const { summary, getProgress, getStatus, setMastered, resetAll } =
     useLearningStore()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const rows = groupByRow()
@@ -21,10 +21,8 @@ export function ProgressPage() {
       acc[s] += 1
       return acc
     },
-    { 未学習: 0, 学習中: 0, 習得済み: 0, 苦手: 0 } as Record<LearningStatus, number>,
+    { 未学習: 0, 学習中: 0, 習得済み: 0 } as Record<LearningStatus, number>,
   )
-
-  const weakChars = HIRAGANA_CHARACTERS.filter((c) => getStatus(c.id) === '苦手')
 
   return (
     <Layout title="학습 기록" showBack>
@@ -43,36 +41,10 @@ export function ProgressPage() {
           ))}
         </div>
         <p className="mt-3 text-sm text-teal-800/80">
-          전체 정답률:{' '}
-          <strong>
-            {summary.overallAccuracy === null ? '—' : `${summary.overallAccuracy}%`}
-          </strong>
-          / 연속 학습: <strong>{summary.streakDays}일</strong>
+          학습 완료: <strong>{summary.masteredCount}글자</strong> / 연속 학습:{' '}
+          <strong>{summary.streakDays}일</strong>
         </p>
       </section>
-
-      {weakChars.length > 0 && (
-        <section className="mt-4" aria-label="취약 글자">
-          <h2 className="text-sm font-bold text-teal-900">취약 글자</h2>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {weakChars.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() =>
-                  navigate('/study', {
-                    state: { characterIds: [c.id], source: 'single' },
-                  })
-                }
-                className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 text-xl font-bold text-orange-900"
-                aria-label={`${c.hiragana} 연습하기`}
-              >
-                {c.hiragana}
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* 五十音表 */}
       <section className="mt-6" aria-label="히라가나 표">
@@ -89,7 +61,6 @@ export function ProgressPage() {
                 {chars.map((c) => {
                   const progress = getProgress(c.id)
                   const status = getStatus(c.id)
-                  const accuracy = getCharAccuracy(c.id)
                   const style = STATUS_STYLES[status]
 
                   return (
@@ -111,9 +82,7 @@ export function ProgressPage() {
                         {style.shortLabel}
                       </span>
                       <span className="sr-only">
-                        학습 {progress.studyCount}회, 테스트 {progress.testCount}회,
-                        정답 {progress.correctCount}, 오답 {progress.incorrectCount},
-                        정답률 {accuracy === null ? '없음' : `${accuracy}%`}
+                        학습 {progress.studyCount}회, 쓰기 {progress.writeCount}회
                       </span>
                     </button>
                   )
@@ -131,34 +100,47 @@ export function ProgressPage() {
       {/* 詳細リスト（選択文字の数値） */}
       <section className="mt-6" aria-label="글자별 상세">
         <h2 className="mb-2 text-sm font-bold text-teal-900">글자별 기록</h2>
-        <ul className="max-h-64 space-y-2 overflow-y-auto rounded-2xl bg-white p-3 ring-1 ring-teal-50">
+        <ul className="max-h-80 space-y-2 overflow-y-auto rounded-2xl bg-white p-3 ring-1 ring-teal-50">
           {HIRAGANA_CHARACTERS.map((c) => {
             const p = getProgress(c.id)
-            const acc = getCharAccuracy(c.id)
             return (
               <li
                 key={c.id}
-                className="flex items-center justify-between gap-2 border-b border-teal-50 py-2 text-sm last:border-0"
+                className="border-b border-teal-50 py-3 text-sm last:border-0"
               >
-                <button
-                  type="button"
-                  className="flex items-center gap-2 font-bold text-teal-900"
-                  onClick={() =>
-                    navigate('/study', {
-                      state: { characterIds: [c.id], source: 'single' },
-                    })
-                  }
-                >
-                  <span className="text-xl">{c.hiragana}</span>
-                  <StatusBadge status={getStatus(c.id)} compact />
-                </button>
-                <div className="text-right text-xs text-teal-700/80">
-                  <div>학습 {p.studyCount} / 쓰기 {p.writeCount}</div>
-                  <div>
-                    테스트 {p.testCount} (정답 {p.correctCount}/오답 {p.incorrectCount})
-                    {acc !== null ? ` ${acc}%` : ''}
+                <div className="flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    className="flex min-h-11 items-center gap-2 font-bold text-teal-900"
+                    onClick={() =>
+                      navigate('/study', {
+                        state: { characterIds: [c.id], source: 'single' },
+                      })
+                    }
+                    aria-label={`${c.hiragana} 연습하기`}
+                  >
+                    <span className="text-xl">{c.hiragana}</span>
+                    <StatusBadge status={getStatus(c.id)} compact />
+                  </button>
+                  <div className="text-right text-xs text-teal-700/80">
+                    학습 {p.studyCount} / 쓰기 {p.writeCount}
                   </div>
                 </div>
+                <button
+                  type="button"
+                  aria-pressed={p.isMastered}
+                  aria-label={`${c.hiragana} ${
+                    p.isMastered ? '학습 완료 취소' : '학습 완료로 설정'
+                  }`}
+                  onClick={() => setMastered(c.id, !p.isMastered)}
+                  className={`mt-2 flex min-h-11 w-full items-center justify-center rounded-xl px-3 text-xs font-bold ring-1 ${
+                    p.isMastered
+                      ? 'bg-sky-100 text-sky-800 ring-sky-200'
+                      : 'bg-white text-teal-800 ring-teal-200'
+                  }`}
+                >
+                  {p.isMastered ? '학습 완료 취소' : '학습 완료로 설정'}
+                </button>
               </li>
             )
           })}

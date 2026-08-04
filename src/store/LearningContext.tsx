@@ -10,23 +10,21 @@ import {
 import type { CharacterProgress, LearningStoreData } from '../types'
 import {
   createEmptyProgress,
-  getAccuracy,
   getLearnedCount,
   getLearningStatus,
-  getOverallAccuracy,
+  getMasteredCount,
   loadStore,
   recordStudyDay,
   resetStore,
   saveStore,
-  updateWeakFlag,
 } from '../services/storage'
 
 interface LearningContextValue {
   data: LearningStoreData
   /** 勉強モードで1文字練習したとき */
   recordWriting: (characterId: string, writeTimes: number) => void
-  /** テストで1問回答したとき */
-  recordTestAnswer: (characterId: string, isCorrect: boolean) => void
+  /** 文字の習得済み状態を手動で変更 */
+  setMastered: (characterId: string, isMastered: boolean) => void
   /** 学習セッション開始（連続日数など更新） */
   startSession: () => void
   /** 学習記録をリセット */
@@ -35,13 +33,12 @@ interface LearningContextValue {
   summary: {
     todayStudyCount: number
     learnedCount: number
-    overallAccuracy: number | null
+    masteredCount: number
     streakDays: number
     totalCharacters: number
   }
   getProgress: (id: string) => CharacterProgress
   getStatus: (id: string) => ReturnType<typeof getLearningStatus>
-  getCharAccuracy: (id: string) => number | null
 }
 
 const LearningContext = createContext<LearningContextValue | null>(null)
@@ -76,16 +73,13 @@ export function LearningProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
-  const recordTestAnswer = useCallback((characterId: string, isCorrect: boolean) => {
+  const setMastered = useCallback((characterId: string, isMastered: boolean) => {
     setData((prev) => {
       const current = prev.characters[characterId] ?? createEmptyProgress()
-      let updated: CharacterProgress = {
+      const updated: CharacterProgress = {
         ...current,
-        testCount: current.testCount + 1,
-        correctCount: current.correctCount + (isCorrect ? 1 : 0),
-        incorrectCount: current.incorrectCount + (isCorrect ? 0 : 1),
+        isMastered,
       }
-      updated = updateWeakFlag(updated)
       return {
         ...prev,
         characters: {
@@ -110,16 +104,11 @@ export function LearningProvider({ children }: { children: ReactNode }) {
     [getProgress],
   )
 
-  const getCharAccuracy = useCallback(
-    (id: string) => getAccuracy(getProgress(id)),
-    [getProgress],
-  )
-
   const summary = useMemo(
     () => ({
       todayStudyCount: data.todayStudyCount,
       learnedCount: getLearnedCount(data),
-      overallAccuracy: getOverallAccuracy(data),
+      masteredCount: getMasteredCount(data),
       streakDays: data.streakDays,
       totalCharacters: Object.keys(data.characters).length,
     }),
@@ -129,13 +118,12 @@ export function LearningProvider({ children }: { children: ReactNode }) {
   const value: LearningContextValue = {
     data,
     recordWriting,
-    recordTestAnswer,
+    setMastered,
     startSession,
     resetAll,
     summary,
     getProgress,
     getStatus,
-    getCharAccuracy,
   }
 
   return (
